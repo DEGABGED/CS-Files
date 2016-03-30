@@ -1,0 +1,18 @@
+This DevCamp folder will contain a group of Python scripts for running Snake with Neural Network Evolution.
+
+Specifications of the project:
+	Number of Neural Networks per Gen: 12
+	List of Inputs:
+		- Length of Snake
+		- Coordinates of the Snake head
+		- Coordinates of the Snake tail (?)
+		- Current Direction
+		- Coordinates of the Food
+		=> Total: 6 or 8
+	Hidden Layer Sizes: [3]
+	Interpretation of Output:
+		[0.000, 0.500) - Don't press a key
+		[0.500, 0.625) - Left
+		[0.625, 0.750) - Right
+		[0.750, 0.875) - Up
+		[0.875, 1.000) - Down

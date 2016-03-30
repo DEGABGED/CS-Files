@@ -1,0 +1,8 @@
+On Groups
+	- Searching a group shows weird buttons
+On error handling
+	- No error handling yet
+	
+	SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`csi-project`.`group_auth`, CONSTRAINT `group_auth_ibfk_1` FOREIGN KEY (`authuser_id`) REFERENCES `group_users` (`user_id`))
+	
+	SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`csi-project`.`group_auth`, CONSTRAINT `group_auth_ibfk_1` FOREIGN KEY (`authuser_id`) REFERENCES `group_users` (`user_id`))

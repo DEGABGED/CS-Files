@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+    {% if events %}
+        {% for event in events %}
+            <p><strong>{{event.name}}</strong><br>Venue: {{event.venue}}<br> Desc: {{event.desc}}</p><br />
+        {% endfor %}
+    {% else %}
+        <p>Currently no events.</p>
+    {% endif %}
+{% endblock %}

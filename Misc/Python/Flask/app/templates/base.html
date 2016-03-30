@@ -1,0 +1,25 @@
+<html>
+    <head>
+        {% if title %}
+            <title>{{title}} - EventViewer</title>
+        {% else %}
+            <title>EventViewer</title>
+        {% endif %}
+    </head>
+    <body>
+        <div id="page_header">
+            <h2>HEADER</h2>
+        </div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }} </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <br />
+        {% block content %}{% endblock %}
+    </body>
+</html>

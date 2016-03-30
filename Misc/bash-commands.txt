@@ -1,0 +1,16 @@
+fortune | cowsay -f tux
+	- Posts fortune said by Tux
+fortune | cowsay -f sodomized-sheep
+	- lenny lenny
+sudo /opt/lampp/lampp start
+	- Starts XAMPP
+sudo /opt/lampp/lampp stop
+	- Stops XAMPP
+python3 -m http.server 8000 --cgi
+	- Starts a python server ???
+chmod -R a+x *
+	- Edits permissions to read/write/exec
+virtualenv venv
+	- Set up virtualenv in the current dir
+. venv/bin/activate
+	- Open virtualenv here. Install Flask after

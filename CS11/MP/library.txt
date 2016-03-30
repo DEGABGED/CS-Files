@@ -1,0 +1,5 @@
+#ID		Title					Artist			Composer		Album					Genre			Rating	Remarks
+#2		6						4				4				6						4				2		~
+1		Coloured Glass			Draper			---				MC019: Endeavors		EDM				4.5		lenny
+2		What I've Waited For	Vicetone		---				MC020: Altitude			EDM				3.9		7.8/10
+

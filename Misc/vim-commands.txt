@@ -1,0 +1,68 @@
+Vim commands
+
+Modes:
+Esc	Normal mode
+i	Insert mode
+v	Visual mode (Select text w/ movement keys)
+a	Append to word
+A	Append to line
+R	Replace subsequent text
+
+Movement:
+h	Left
+j	Down
+k	Up
+l	Right
+w	Start of next word
+e	End of word
+b	Start of word
+f[]	Find next occurrence of letter
+F[]	Find previous occurrence of letter
+%	Go to pair bracket (No number)
+0	Start of the line / Home (No number)
+$	End of the line / End (No number)
+*	Find next occurence of word under cursor
+#	Find previous occurrence of word under cursor
+gg	Start of file / Go to line number
+G	End of file / Go to line number
+/	Search file
+n	Find next occurrences of '/' search
+N	Find previous occurrences of '/' search
+
+Editing:
+o	Insert new line below
+O	Insert new line above
+x	Delete character on cursor
+X	Delete character before cursor
+r	Replace character on cursor
+d	Delete / Cut (combine with movement)
+dd	Delete line
+c	Change (combine with movement)
+p	Paste
+y	Copy (combine with movement)
+
+Commands:
+.	Repeat previous command
+:w	Save file
+:q	Quit
+:q!	Quit w/o save
+u	Undo
+CTRL+R	Redo
+:Explore	Open file explorer
+:e	Edit a file. If a directory is chosen, an explorer will open
+:r	Retrieve file
+:!	External command
+	(eg. :!rm FILENAME, :!ls)
+	(eg. :r !ls writes the directory list on the file)
+:set []	Set options for search and other things
+	(eg. ic-ignore case, hls-highlight searches, is-highlight partial results)
+	(Prepend 'no' to the settings for the opposite. eg. noic, nohls, nois, etc.)
+	(Only set for one search by appending '\c' to the search query)
+CTRL+D	Show possible autocomplete choices
+TAB	Cycle among autocomplete choices
+:split	Open file in new window below
+:vsplit	Open file in new window to the left
+
+Numbers:
+[1]i[2] Esc	Enter text multiple times
+	1-Number; 2-Text

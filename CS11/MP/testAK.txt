@@ -1,0 +1,63 @@
+5
+90,-42,-242,-86,32,8
+yes
+//factors: -5, -3/2, -1, 1/2, 3
+
+4
+0,0,-2,-5,3
+yes
+//factors: -1/3, 0, 2
+
+2
+18,-24,8
+yes
+//factors: 3/2
+
+3
+1,4,6,3
+yes
+//factors: -1
+
+10
+0,0,0,0,0,0,0,0,-2,-1,15
+yes
+//factors: -1/3, 0, 2/5
+
+3
+-3,5,16,-12
+yes
+//factors: -1/2, 1/3, 3/2
+
+2
+16,0,-4
+yes
+//factors: -2,2
+
+4
+0,0,0,3,0
+yes
+//degree change; constant is zero; factors: 0
+
+2
+0,0,0
+1,2,1
+yes
+//not a polynomial -> -1
+
+2
+3,0,0,0,0
+0,3,0,0,0
+yes
+//extra elements; not a polynomial -> 0
+
+2a
+a2
+aa
+-2
+0
+  2
+   1,2,,1
+	 1,2,1
+  Yewah
+yes
+//error checking

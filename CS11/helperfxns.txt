@@ -1,0 +1,79 @@
+typedef struct LinkedList{
+    int val;
+    struct LinkedList * next;
+} List;
+
+int isNotInteger(char * input, int * num, int program){ //if not a program variable, then program = 0
+    *num = atoi(input);
+    return 0;
+}
+
+int isNotFloat(char * input, float * num, int program){
+    *num = atoi(input); //not really but eh
+    return 0;
+}
+
+void printIntArr(int * arr, int num){
+    int x;
+    printf("[");
+    for(x=0; x<num; x++){
+        printf("%s%d", x ? ", " : "", *(arr + x));
+    }
+    printf("]\n");
+}
+
+void printFloatArr(float * arr, int num){
+    int x;
+    printf("[");
+    for(x=0; x<num; x++){
+        printf("%s%.3f", x ? ", " : "", *(arr + x));
+    }
+    printf("]\n");
+}
+
+int * processInputInt(char * string, int * output, int * len){
+    int ctr = 0;
+    output = (int*) malloc(sizeof(int)*IOMED);
+    char del = ',';
+    char * tk = strtok(string, &del);
+    while(tk){
+        *(output + ctr) = atoi(tk);
+        tk = strtok(NULL, &del);
+        ctr++;
+        if(ctr%IOMED == 0){
+            output = (int*) realloc(output, sizeof(int)*IOMED + ctr);
+        }
+    }
+    *len = ctr;
+    return output;
+}
+
+float * processInputFloat(char * string, float * output, int * len){
+    int ctr = 0;
+    output = (float*) malloc(sizeof(float)*IOMED);
+    char del = ',';
+    char * tk = strtok(string, &del);
+    while(tk){
+        *(output + ctr) = atof(tk);
+        tk = strtok(NULL, &del);
+        ctr++;
+        if(ctr%IOMED == 0){
+            output = (float*) realloc(output, sizeof(float)*IOMED + ctr);
+        }
+    }
+    *len = ctr;
+    return output;
+}
+
+int powInt(int base, int exp){
+    int ret = 1;
+    while(exp){
+        ret *= base;
+        exp--;
+    }
+    return ret;
+}
+
+float distance(int x, int y){ //x = x1-x2, y = y1-y2
+    return sqrt((double) ((x*x) + (y*y)));
+}

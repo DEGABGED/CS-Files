@@ -1,0 +1,52 @@
+/*
+	EXECUTE EACH BLOCK INDIVIDUALLY AND ADJUST VALUES ACCORDINGLY
+*/
+
+INSERT INTO users (user_name, user_pass) VALUES ("fzqdlc", "PASSWORD");
+INSERT INTO users (user_name, user_pass) VALUES ("degabged", "letmein");
+INSERT INTO users (user_name, user_pass) VALUES ("franciszac", "password");
+INSERT INTO users (user_name, user_pass) VALUES ("fqdelacruz", "gammarayburst");
+
+INSERT INTO groups (group_name, group_desc, group_creator) VALUES ("UP Diliman", "A group for events in UPD", 2);
+INSERT INTO groups (group_name, group_desc, group_creator) VALUES ("Metro Manila", "Official group of NCR", 2);
+INSERT INTO groups (group_name, group_desc, group_creator) VALUES ("Otis 888", "Townhouse events are posted here", 2);
+INSERT INTO groups (group_name, group_desc, group_creator) VALUES ("My House", "Nothing ever happens here", 1);
+
+INSERT INTO events (event_name, event_date, event_time, event_venue, event_desc, event_creator) VALUES ("Research Fair", "2015-10-25", "21:55:00", "Melchor Hall", "A fair for research papers", 1);
+INSERT INTO events (event_name, event_date, event_time, event_venue, event_desc, event_creator) VALUES ("Hack UP", "2015-09-15", "07:30:00", "GT Toyota", "A hackathon", 3);
+INSERT INTO events (event_name, event_date, event_time, event_venue, event_desc, event_creator) VALUES ("Halloween Party", "2015-10-31", "23:59:00", "Event Hall", "party on fuckers", 1);
+INSERT INTO events (event_name, event_date, event_time, event_venue, event_desc, event_creator) VALUES ("House Auction", "2015-12-25", "15:00:00", "Event Hall", "merry christmas", 1);
+INSERT INTO events (event_name, event_date, event_time, event_venue, event_desc, event_creator) VALUES ("Eng 10", "2015-10-01", "11:30:00", "AS 226", "Due ngayon yung paper", 3);
+
+INSERT INTO group_events (group_id, event_id) VALUES (3,1);
+INSERT INTO group_events (group_id, event_id) VALUES (3,2);
+INSERT INTO group_events (group_id, event_id) VALUES (4,2);
+INSERT INTO group_events (group_id, event_id) VALUES (4,4);
+INSERT INTO group_events (group_id, event_id) VALUES (5,3);
+INSERT INTO group_events (group_id, event_id) VALUES (3,5);
+INSERT INTO group_events (group_id, event_id) VALUES (6,3);
+
+INSERT INTO group_users (group_id, user_id) VALUES (3,2);
+INSERT INTO group_users (group_id, user_id) VALUES (3,3);
+INSERT INTO group_users (group_id, user_id) VALUES (3,4);
+INSERT INTO group_users (group_id, user_id) VALUES (3,7);
+INSERT INTO group_users (group_id, user_id) VALUES (4,4);
+INSERT INTO group_users (group_id, user_id) VALUES (4,3);
+INSERT INTO group_users (group_id, user_id) VALUES (5,2);
+INSERT INTO group_users (group_id, user_id) VALUES (6,7);
+
+INSERT INTO group_users (group_id, user_id) VALUES (3,1);
+INSERT INTO group_users (group_id, user_id) VALUES (4,1);
+INSERT INTO group_users (group_id, user_id) VALUES (5,1);
+INSERT INTO group_users (group_id, user_id) VALUES (6,1);
+INSERT INTO group_users (group_id, user_id) VALUES (5,3);
+INSERT INTO group_users (group_id, user_id) VALUES (6,3);
+
+INSERT INTO group_auth (group_id, authuser_id) VALUES (3,1);
+INSERT INTO group_auth (group_id, authuser_id) VALUES (4,1);
+INSERT INTO group_auth (group_id, authuser_id) VALUES (5,1);
+INSERT INTO group_auth (group_id, authuser_id) VALUES (6,1);
+INSERT INTO group_auth (group_id, authuser_id) VALUES (3,3);
+INSERT INTO group_auth (group_id, authuser_id) VALUES (4,3);
+INSERT INTO group_auth (group_id, authuser_id) VALUES (5,3);
+INSERT INTO group_auth (group_id, authuser_id) VALUES (6,3);

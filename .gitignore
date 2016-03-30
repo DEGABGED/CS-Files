@@ -1,0 +1,12 @@
+*.out
+*.exe
+*.*~
+*.class
+Misc/Python/venv/
+*.pyc
+*.swp
+*.zip
+*.pdf
+*.sltr
+CS12/ME1/FinalOutput/Documentation
+CS12/ME1/me1
