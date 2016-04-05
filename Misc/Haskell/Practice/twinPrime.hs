@@ -1,4 +1,4 @@
-isPrime :: Int -> Bool
-isPrime n = foldl (\acc x -> if mod n x == 0 then True else acc) False [2..(ceiling(sqrt(n)))]
+isPrime :: (Integral a) => a -> Bool
+isPrime n = not $ foldl (\acc x -> acc || mod n x == 0) False [2..round (sqrt (fromIntegral n))]
 
-twinprimes = [ (x,y) | x <- [5..], y <- [3..], x - y == 2, isPrime x && isPrime y]
+twinprimes = filter istp (zip [3,5..] [5,7..]) where istp (x,y) = isPrime x && isPrime y
