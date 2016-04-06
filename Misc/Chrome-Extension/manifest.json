@@ -1,0 +1,23 @@
+{
+	"name": "Test extension",
+	"description": "Just a little something",
+	"version": "0.0.1",
+	"manifest_version": 2,
+	"icons": {
+		"128": "icon_128.png"
+	},
+	"chrome_url_overrides": {
+		"newtab": "index.html"
+	},
+	"permissions": [
+		"storage"
+	]
+
+	/*
+	"content_scripts": [{
+		//"matches": ["chrome://newtab"],
+		"css": ["styles.css"],
+		"js": ["scripts.js"]
+	}]
+	*/
+}

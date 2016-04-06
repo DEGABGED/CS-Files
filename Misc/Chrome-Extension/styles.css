@@ -1,0 +1,55 @@
+html {
+
+}
+
+body {
+	background-color: #808080;
+	overflow: auto;
+}
+
+.clearfix {
+	clear: auto;
+}
+
+.page-container {
+	position: absolute;
+	width: 99%;
+	height: 98%;
+}
+
+.quads-container {
+	position: relative;
+	margin: 0 auto 0;
+	max-width: 800px;
+	height: 80%;
+}
+
+.quad-container {
+	position: relative;
+	display: inline-block;
+	float: left;
+	width: 50%;
+	height: 50%;
+}
+
+.quadtext {
+	position: relative;
+	resize: none;
+	width: 100%;
+	height: 100%;
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+#quad1 {
+	background-color: #FFB0B0;
+}
+#quad2 {
+	background-color: #B0B0FF;
+}
+#quad3 {
+	background-color: #B0FFB0;
+}
+#quad4 {
+	background-color: #FBFFB0;
+}
