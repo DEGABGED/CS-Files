@@ -13,14 +13,26 @@ var quadtexts = [
 	quads[3].value
 ];
 
-var jsobj = {};
+var json_arr = {'quads': []};
 
 // Some automatic window functions
-/*
-document.getElementById("export-data").addEventListener("click", function() {
-	saveData();
+getData();
+
+// Add autoupdate
+// For and while loops don't work for some fucking reason
+quads[0].addEventListener('input', function() {
+	saveDatum(0);
 });
-*/
+quads[1].addEventListener('input', function() {
+	saveDatum(1);
+});
+quads[2].addEventListener('input', function() {
+	saveDatum(2);
+});
+quads[3].addEventListener('input', function() {
+	saveDatum(3);
+});
+
 window.onbeforeunload = function() {
 	saveData();
 };
@@ -39,45 +51,30 @@ function getData() {
 		for(x in result.quads) {
 			console.log(result.quads[x].quad);
 			quads[x].value = result.quads[x].quad;
+			json_arr.quads.push({'quad':quads[x].value});
 		}
 		console.log("Loaded");
 	});
 }
 
-getData();
+function saveDatum(ndx) {
+	console.log(ndx);
+	console.log("savedatum: "+ quads[ndx].value);
+	json_arr.quads[ndx].quad = quads[ndx].value;
+	chrome.storage.sync.set(json_arr, function() {
+		console.log("SAVED");
+	});
+}
 
 function saveData() {
 	getValues();
-	chrome.storage.sync.set({'quads': [
+	json_arr = {'quads': [
 		{'quad': quadtexts[0]},
 		{'quad': quadtexts[1]},
 		{'quad': quadtexts[2]},
 		{'quad': quadtexts[3]}
-	]}, function() {
+	]};
+	chrome.storage.sync.set(json_arr, function() {
 		console.log("SAVED");
 	});
-
-	/*
-	chrome.storage.sync.set({'quad1': quadtexts[0]}, function() {
-		console.log("SAVED");
-	});
-	*/
-	console.log("Finished saving");
-}
-
-function exportData() {
-	getValues();
-	var json_exp = JSON.stringify({
-		"quad1": quadtexts[0],
-		"quad2": quadtexts[1],
-		"quad3": quadtexts[2],
-		"quad4": quadtexts[3]
-	});
-	jsobj = JSON.parse(json_exp);
-	console.log(json_exp);
-	console.log("Finished export");
-}
-
-function importData() {
-	
 }

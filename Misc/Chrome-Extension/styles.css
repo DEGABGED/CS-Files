@@ -3,7 +3,8 @@ html {
 }
 
 body {
-	background-color: #808080;
+	/*background-color: #808080;*/
+	background-image: url("images/sky.png");
 	overflow: auto;
 }
 
@@ -22,6 +23,8 @@ body {
 	margin: 0 auto 0;
 	max-width: 800px;
 	height: 80%;
+	top: 50%;
+	transform: translateY(-50%);
 }
 
 .quad-container {
