@@ -111,6 +111,7 @@ public class Solitaire {
 		if(this.redealsLeft == 0) return -1;
 		if(this.talon.isEmpty()) return redealsLeft;
 		while(!this.talon.isEmpty()) {
+			this.faceCard((Card) this.talon.peek(), false);
 			this.stock.push(this.talon.pop());
 		}
 		return --redealsLeft;
@@ -135,7 +136,7 @@ public class Solitaire {
 			}
 		}
 
-		this.faceCard((Card) this.stock.peek(), true);
+		//this.faceCard((Card) this.stock.peek(), true);
 	}
 
 	/**
@@ -207,13 +208,12 @@ public class Solitaire {
 	}
 
 	/**
-	* Draws a card from the stock.
-	* @return Card drawn from the stock.
+	* Draws a card from the stock and places it in the talon pile.
 	*/
-	public Card draw() {
+	public void draw() {
 		Card output = (Card) this.stock.pop();
-		if(!this.stock.isEmpty()) this.faceCard((Card) this.stock.peek(), true);
-		return output;
+		output.setFaceUp(true);
+		this.talon.push(output);
 	}
 
 	/**

@@ -82,7 +82,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 		LinkedStack[] tableuRev = new LinkedStack[7];
 		for(b=0; b<7; b++){
 			tableuRev[b] = new LinkedStack();
-			while(!this.game.getTableu()[b].isEmpty()) tableuRev[b].push(this.game.getTableu()[b].pop());
+			while(!this.game.getTableus()[b].isEmpty()) tableuRev[b].push(this.game.getTableus()[b].pop());
 		}
 
 		boolean someRemain = true;
@@ -90,8 +90,8 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			someRemain = false;
 			for(b=0; b<7; b++){
 				if(!tableuRev[b].isEmpty()){
-					this.game.getTableu()[b].push(tableuRev[b].pop());
-					System.out.print(String.format(Constant.CARDTOPTMPL, (Card) this.game.getTableu()[b].peek()));
+					this.game.getTableus()[b].push(tableuRev[b].pop());
+					System.out.print(String.format(Constant.CARDTOPTMPL, (Card) this.game.getTableus()[b].peek()));
 					someRemain = true;
 				} else  {
 					System.out.print(Constant.CARDWIDTH);
@@ -141,7 +141,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 
 			switch(ch) {
 				case 1: //Draw from Stock
-					hand.push(game.draw());
+					game.draw();
 					break;
 				case 2: //Draw from Foundation
 					System.out.println("Which foundation?");

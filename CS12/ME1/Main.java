@@ -44,6 +44,7 @@ public class Main {
 	* are handled and printed out.
 	* @param args Unused.
 	*/
+/*
 	public static void main(String[] args){
 		Solitaire game = new Solitaire();
 		Scanner sc = new Scanner(System.in);
@@ -199,5 +200,10 @@ public class Main {
 				}
 			}
 		} while(ch != 0);
+	}
+*/
+	public static void main(String[] args) {
+		SolitaireIO game = new SolitaireCommandLineIO();
+		while(game.getGameInput()) {}
 	}
 }
