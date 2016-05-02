@@ -2,21 +2,30 @@ package me1.delacruz;
 import java.util.Arrays;
 import java.util.Scanner;
 
-/**
-* <h1>Main</h1>
-* The Main class contains the public static void main method. This is where the
-* flow of the game and IO is managed.
-*
-* @author	Francis Zac dela Cruz
-* @since	2015-03-26
-*/
+public class SolitaireCommandLineIO implements SolitaireIO {
+	private Solitaire game;
+	private LinkedStack hand;
+	private int error;
+	private Scanner sc;
+	private int ch;
+	private int pilenumber;
+	private String dmp;
 
-public class Main {
+	public SolitaireCommandLineIO() {
+		this.game = new Solitaire();
+		this.hand = new LinkedStack();
+		this.error = 0;
+		this.sc = new Scanner(System.in);
+		this.ch = 0;
+		this.pilenumber = 0;
+		this.dmp = "";
+	}
+
 	/**
 	* Clears the CLI and moves the output to the top of the window.
 	* Source: http://stackoverflow.com/questions/4888362/commands-in-java-to-clear-the-screen
 	*/
-	public static void flush() {
+	public void flush() {
 		final String ANSI_CLS = "\u001b[2J";
 		final String ANSI_HOME = "\u001b[H";
 		System.out.print(ANSI_CLS + ANSI_HOME);
@@ -27,7 +36,7 @@ public class Main {
 	* Takes Integer user input and validates it in defense of invalid user input.
 	* @return Integer typed in by the user. Returns -1 if input is not integer.
 	*/
-	public static int numberInput() {
+	public int numberInput() {
 		Scanner sc = new Scanner(System.in);
 		try {
 			String output = sc.nextLine();
@@ -37,27 +46,66 @@ public class Main {
 		}
 	}
 
-	/**
-	* Main method which contains the game loop. It first prints out the game state,
-	* then prompts an integer input corresponding to their preferred course of
-	* action. Then, the corresponding game function is executed. Errors in the game
-	* are handled and printed out.
-	* @param args Unused.
-	*/
-	public static void main(String[] args){
-		Solitaire game = new Solitaire();
-		Scanner sc = new Scanner(System.in);
-		LinkedStack hand = new LinkedStack();
-		System.out.println("~~~~~Welcome!~~~~~");
-		int ch = 0;
-		int pilenumber = 0;
-		int error = 0;
-		String dmp; // This string will store unwanted newlines and input.
+	public void printGameState() {
+		int b = 0;
+		int fndtotal = 0;
 
+		//Print Stock, Talon, and Foundations
+		System.out.println(Constant.STFTOP);
+		System.out.print(String.format(Constant.CARDTEXT, (Card) this.game.getStock().peek() == null ? "   " : (Card) this.game.getStock().peek()) +
+			String.format(Constant.CARDTEXT, (Card) this.game.getTalon().peek() == null ? "   " : (Card) this.game.getTalon().peek()) + Constant.CARDWIDTH);
+		for(LinkedStack x : this.game.getFoundations()){
+			System.out.print(String.format(Constant.CARDTEXT, (Card) x.peek() == null ? "   " : (Card) x.peek()));
+			fndtotal += x.getSize();
+		}
+		System.out.print("\n");
+		for(b=0; b<3; b++){
+			System.out.println(Constant.STFBODY);
+		}
+		System.out.println(Constant.STFBOTTOM);
+
+		//Print Labels
+		System.out.println(" Stock  Talon " + Constant.CARDWIDTH +
+			String.format(Constant.CARDMARGIN, Constant.SPDS) +
+			String.format(Constant.CARDMARGIN, Constant.HRTS) +
+			String.format(Constant.CARDMARGIN, Constant.DMND) +
+			String.format(Constant.CARDMARGIN, Constant.CLBS));
+		System.out.println(" Redeals left: " + this.game.getRedealsLeft() +
+			", Stock: " + this.game.getStock().getSize() +
+			", Foundations: " + fndtotal + "\n");
+		for(int x=1; x<8; x++){
+			System.out.print(String.format(Constant.CARDMARGIN, x));
+		}
+		System.out.print("\n");
+
+		//Print Tableus
+		LinkedStack[] tableuRev = new LinkedStack[7];
+		for(b=0; b<7; b++){
+			tableuRev[b] = new LinkedStack();
+			while(!this.game.getTableu()[b].isEmpty()) tableuRev[b].push(this.game.getTableu()[b].pop());
+		}
+
+		boolean someRemain = true;
+		while(someRemain){
+			someRemain = false;
+			for(b=0; b<7; b++){
+				if(!tableuRev[b].isEmpty()){
+					this.game.getTableu()[b].push(tableuRev[b].pop());
+					System.out.print(String.format(Constant.CARDTOPTMPL, (Card) this.game.getTableu()[b].peek()));
+					someRemain = true;
+				} else  {
+					System.out.print(Constant.CARDWIDTH);
+				}
+			}
+			System.out.print("\n");
+		}
+	}
+
+	public boolean getGameInput() { //returns false only if quit is chosen
 		flush();
 		do {
 			error = 0;
-			game.printGameState();
+			this.printGameState();
 			System.out.println("\nHand: " + hand);
 			System.out.println("\nWhat would you like to do?");
 			System.out.print( "1 - Draw from Stock      "
@@ -76,16 +124,18 @@ public class Main {
 			// Check if user input was an integer
 			if((ch = numberInput()) == -1) {
 				flush();
-				System.out.print(String.format(Constant.TEMPLATE, Constant.ERRORS[1]));
+				error = 1;
+				System.out.print(String.format(Constant.TEMPLATE, Constant.ERRORS[error]));
 				continue;
 			}
 
-			if(ch == 0) break;
+			if(ch == 0) return false;
 
 			// Check if hand is empty
 			if(!hand.isEmpty() && (ch < 5 || ch == 8 || ch == 10 || ch == 11)) {
 				flush();
-				System.out.print(String.format(Constant.TEMPLATE, Constant.ERRORS[2]));
+				error = 2;
+				System.out.print(String.format(Constant.TEMPLATE, Constant.ERRORS[error]));
 				continue;
 			}
 
@@ -195,9 +245,10 @@ public class Main {
 					hand.clear();
 					flush();
 				} else {
-					break;
+					return false;
 				}
 			}
-		} while(ch != 0);
+		} while(error != 0);
+		return true;
 	}
 }

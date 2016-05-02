@@ -45,6 +45,15 @@ public class Solitaire {
 	}
 
 	/**
+	* The following accessor methods are for use by the SolitaireIO classes.
+	*/
+	public LinkedStack getTalon() { return this.talon; }
+	public LinkedStack[] getFoundations() { return this.foundations; }
+	public LinkedStack getStock() { return this.stock; }
+	public LinkedStack[] getTableus() { return this.tableu; }
+	public int getRedealsLeft() { return this.redealsLeft; }
+
+	/**
 	* Flips up or down a Card. Since Cards popped / peeked from a
 	* LinkedStack are of type Object, they would have to be typecasted. This method
 	* simply prevents the writing of code similar to the following:
