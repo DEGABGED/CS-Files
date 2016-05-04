@@ -4,17 +4,31 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SolitaireGraphicalIO extends JFrame implements SolitaireIO {
-	public void printGameState() { return; }
+	public void printGameState() {
+		
+	}
+
 	public boolean getGameInput() { return true; }
 
 	private GUITemplate canvas;
 	private JPanel statusBar;
 	private JLabel status;
 
-	public SolitaireGraphicalIO() {
-		canvas = new GUITemplate();
-		setLayout(new BorderLayout());
+	private Solitaire game;
+	private LinkedStack hand;
+	private int error;
 
+	public SolitaireGraphicalIO() {
+		// For the game itself
+		this.game = new Solitaire();
+		this.game.loadGame("testgui.sltr");
+		this.hand = new LinkedStack();
+		this.error = 0;
+
+		// For the template
+		canvas = new GUITemplate(this.game);
+
+		setLayout(new BorderLayout());
 		statusBar = new JPanel();
 		add(statusBar, BorderLayout.SOUTH);
 		statusBar.setPreferredSize(new Dimension(getWidth(), 25));
@@ -31,8 +45,9 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO {
 		setVisible(true);
 		setResizable(false);
 	}
-
+	// To test the GUI; will be gotten rid of soon enough
 	public static void main(String[] args) {
 		SolitaireGraphicalIO frame = new SolitaireGraphicalIO();
+		frame.printGameState();
 	}
 }

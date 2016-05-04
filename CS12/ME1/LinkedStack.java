@@ -105,6 +105,20 @@ public class LinkedStack {
 	}
 
 	/**
+	* Reverses the order of the stack, by creating a new stack and
+	* pushing all the contents popped from this stack.
+	* Unlike the other reverse function, this one returns a new
+	* stack, while not changing the old one.
+	*/
+	public LinkedStack getReverse() {
+		if(this.isEmpty()) return null;
+		LinkedStack o = new LinkedStack();
+		Node ptr = this.top;
+		for(;ptr != null;ptr = ptr.link) o.push(ptr.data);
+		return o;
+	}
+
+	/**
 	* Converts the LinkedStack to a string for output.
 	* @return String representation of the stack.
 	*/

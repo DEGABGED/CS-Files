@@ -316,6 +316,7 @@ public class Solitaire {
 			file.flush();
 			file.close();
 		} catch(Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -383,6 +384,7 @@ public class Solitaire {
 
 			file.close();
 		} catch(Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 		return true;
