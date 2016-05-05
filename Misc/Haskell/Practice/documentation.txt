@@ -1,0 +1,31 @@
+~~~~~
+Mar 28
+	I started learning Haskell. I first watched a Haskell tutorial video (https://www.youtube.com/watch?v=02_H3LjqMr8) since I am very new to functional programming. I took down notes while watching (tutorialvid.hs).
+~~~~~
+Mar 28
+	One of the first things I tried to implement in a Haskell .hs file (episode10.hs) was a series that follows this rule:
+
+		"The first element of the series is 1. To get succeeding elements, replace all 0s with 1s, and all 1s with 10s. So the next elements would be 10, 101, 10110, 10110101, so on so forth."
+		
+	The "episode10" function takes an integer n and returns the nth element in the said series, starting from 0. So the 0th element would be the first, or 1. I found this problem in the wiki pages of an anime named Madoka Magica (https://wiki.puella-magi.net/Mathematics_of_Madoka_Magica).
+~~~~~
+Mar 28
+	I downloaded the book "Learn you a Haskell for Great Good", a really good Haskell tutorial.
+~~~~~
+Mar 29
+	I started to read the book.
+~~~~~
+Mar 30
+	I did some more practices and copied more examples, like reversing a list (reversi.hs), quicksort (quicksort.hs), finding the sequence that starts from a number and divides it by 2 if it's even or adds 1 to thrice that number if it's odd, which always reached 1 (oddsq.hs), a (failed) attempt at an elegant fizzbuzz solution (fb.hs), and a function that converts decimal numbers to different bases (basechange.hs).
+~~~~~
+Apr 1
+	I started to do CS11 problems in Haskell. Specifically, I did 2 that would print a diamond (diamond.hs) and triangle (triangles.hs), taking its size as an input. It was one of my first experiences with IO () and `iterate`.
+~~~~~
+Apr 5
+	I finished a given problem that is to print twin primes, or pairs of primes with a difference of 2 (eg. 3,5 ; 5,7 ; 11,13). I also attempted to create a function to create an infinite list of primes, based on the premise that if a number is not divisible by all prime numbers below its square root, then it is already prime. This should eliminate the need to check all numbers below its square root, composites includes, since if a number is not divisible by 3, then it is most definitely not divisible by 6, 9, 12, 18, etc. Unfortunately, I wasn't able to finish it, and it would probably stay unfinished until I get advice from someone whoi already knows Haskell.
+~~~~~
+Apr 5
+    I also searched for other Haskell exercises and tried to do a handful of them. At this point in time, I stopped reading the book just before IO, so I still don't know about monads, functors, etc. I plan to continue in the near future.
+~~~~~
+Apr 8
+    I started writing this documentation. I'm also resting from Haskell to focus on UPrint first.
