@@ -26,11 +26,13 @@ public class GUITemplate extends Canvas implements MouseListener {
 
 	public GUITemplate() {
 		setSize(width, height);
+		this.addMouseListener(this);
 	}
 
 	public GUITemplate(Solitaire game) {
 		setSize(width, height);
 		this.game = game;
+		this.addMouseListener(this);
 	}
 
 	private int row2PositionsX(int x) { return marginX+(cardMarginX+cardWidth)*x; }
@@ -110,7 +112,37 @@ public class GUITemplate extends Canvas implements MouseListener {
 	}
 
 	public void mouseClicked(MouseEvent e) {
+		int x = e.getX(), y = e.getY();
+		System.out.println("" + x + " and " + y);
+		int[] dmp = getChosenPile(x,y); // A y value of 0 means 'top of the pile'
+		System.out.println("" + dmp[0] + " and " + dmp[1]);
+		processInput(dmp[0], [dmp[1]);
+	}
 
+	private void processInput(int pile, int cardPos) {
+
+	}
+
+	private int[] getChosenPile(int x, int y) { //returns a 2 int array; 1st one indicates the pile, 2nd one indicates the card index
+		int[] output = {2,0}; // The empty pile between the talon and foundations
+		x -= cardMarginX;
+		output[0] = x / (cardWidth+cardMarginX);
+		if (y > marginY && y < marginY+cardHeight) {
+			System.out.println("StockTalon");
+			output[1] = 0;
+			if (output[0] == 7) output[0] = -1;
+		} else if (y > marginY+cardHeight+cardMarginY && y < height-marginY) {
+			System.out.println("Tableus");
+			output[0] += 7;
+			y -= (marginY+cardMarginY+cardHeight);
+			if(output[0] >= 7 && output[0] < 14) {
+				output[1] = this.game.getTableus()[output[0] - 7].getSize() - (y / cardSliver) - 1;
+			}
+			if(output[1] < 0 && output[1] > -5) output[1] = 0;
+		} else {
+			System.out.println("Border");
+		}
+		return output;
 	}
 
 	public void mousePressed(MouseEvent e) {
