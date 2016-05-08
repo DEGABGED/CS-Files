@@ -5,10 +5,16 @@ import java.awt.*;
 
 public class SolitaireGraphicalIO extends JFrame implements SolitaireIO {
 	public void printGameState() {
-		
+		// repainting
 	}
 
-	public boolean getGameInput() { return true; }
+	public boolean getGameInput(Object o) {
+		LinkedStack stack = (LinkedStack) o;
+		int pile = ((Integer) stack.pop()).intValue();
+		int cardPos = ((Integer) stack.pop()).intValue();
+		System.out.println("Controller " + pile + " " + cardPos);
+		return true;
+	}
 
 	private GUITemplate canvas;
 	private JPanel statusBar;
@@ -26,8 +32,8 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO {
 		this.hand = new LinkedStack();
 		this.error = 0;
 
-		// For the template
-		canvas = new GUITemplate(this.game);
+		// For the template / view
+		canvas = new GUITemplate(this.game, this);
 
 		setLayout(new BorderLayout());
 		statusBar = new JPanel();

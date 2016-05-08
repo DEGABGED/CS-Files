@@ -101,7 +101,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 		}
 	}
 
-	public boolean getGameInput() { //returns false only if quit is chosen
+	public boolean getGameInput(Object o) { //returns false only if quit is chosen
 		flush();
 		do {
 			error = 0;

@@ -204,6 +204,6 @@ public class Main {
 */
 	public static void main(String[] args) {
 		SolitaireIO game = new SolitaireCommandLineIO();
-		while(game.getGameInput()) {}
+		while(game.getGameInput(null)) {}
 	}
 }

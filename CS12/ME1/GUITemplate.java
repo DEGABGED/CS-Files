@@ -19,19 +19,16 @@ public class GUITemplate extends Canvas implements MouseListener {
 	private int marginY = 25;
 
 	private Solitaire game;
+	private SolitaireIO controller;
 	private LinkedStack stockPrint;
 	private LinkedStack talonPrint;
 	private LinkedStack[] foundationsPrint;
 	private LinkedStack[] tableusPrint;
 
-	public GUITemplate() {
-		setSize(width, height);
-		this.addMouseListener(this);
-	}
-
-	public GUITemplate(Solitaire game) {
+	public GUITemplate(Solitaire game, SolitaireIO controller) {
 		setSize(width, height);
 		this.game = game;
+		this.controller = controller;
 		this.addMouseListener(this);
 	}
 
@@ -117,14 +114,13 @@ public class GUITemplate extends Canvas implements MouseListener {
 
 	public void mouseClicked(MouseEvent e) {
 		int x = e.getX(), y = e.getY();
+		LinkedStack response = new LinkedStack();
 		System.out.println("" + x + " and " + y);
 		int[] dmp = getChosenPile(x,y); // A y value of 0 means 'top of the pile'
 		System.out.println("" + dmp[0] + " and " + dmp[1]);
-		processInput(dmp[0], dmp[1]);
-	}
-
-	private void processInput(int pile, int cardPos) {
-
+		response.push(new Integer(dmp[1]));
+		response.push(new Integer(dmp[0]));
+		this.controller.getGameInput(response);
 	}
 
 	private int[] getChosenPile(int x, int y) { //returns a 2 int array; 1st one indicates the pile, 2nd one indicates the card index
