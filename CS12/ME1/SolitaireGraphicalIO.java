@@ -13,6 +13,7 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO {
 	private GUITemplate canvas;
 	private JPanel statusBar;
 	private JLabel status;
+	private JMenu menuBar;
 
 	private Solitaire game;
 	private LinkedStack hand;
@@ -21,7 +22,7 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO {
 	public SolitaireGraphicalIO() {
 		// For the game itself
 		this.game = new Solitaire();
-		this.game.loadGame("testgui.sltr");
+		this.game.loadGame("tableuseven.sltr");
 		this.hand = new LinkedStack();
 		this.error = 0;
 
@@ -32,12 +33,14 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO {
 		statusBar = new JPanel();
 		add(statusBar, BorderLayout.SOUTH);
 		statusBar.setPreferredSize(new Dimension(getWidth(), 25));
-		statusBar.setBackground(new Color(0xefedc0));
+		statusBar.setBackground(new Color(0x40eb74));
 		statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.X_AXIS));
 
 		status = new JLabel("  Status: ");
 		status.setHorizontalAlignment(SwingConstants.LEFT);
 		statusBar.add(status);
+
+		//menuBar
 
 		add(canvas, BorderLayout.CENTER);
 		pack();

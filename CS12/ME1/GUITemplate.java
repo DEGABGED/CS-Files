@@ -42,19 +42,17 @@ public class GUITemplate extends Canvas implements MouseListener {
 	public void paint(Graphics ga) {
 		int x = 0, y = 0;
 		Graphics2D g = (Graphics2D) ga;
-		g.setColor(new Color(0xfffdd0));
+		g.setColor(new Color(0x00bb44)); //greeeen
 		g.fillRect(0, 0, width, height);
 
 		g.setColor(Color.BLACK);
-		// Test to draw the original template
+		// Draw the empty piles first
+		/*
 		for(x = 0; x < 7; x++) {
 			if(x != 2) g.drawRect(marginX+(cardMarginX+cardWidth)*x, marginY, cardWidth, cardHeight);
-			/*
-			for(y = 0; y < x; y++) {
-				g.drawRect(marginX+(cardMarginX+cardWidth)*x, marginY+cardHeight+cardMarginY+(y*cardSliver), cardWidth, cardSliver);
-			}*/
 			g.drawRect(marginX+(cardMarginX+cardWidth)*x, marginY+cardHeight+cardMarginY+(y*cardSliver), cardWidth, cardHeight);
 		}
+		*/
 
 		// Get the list of cards to print, and in what order
 		stockPrint = game.getStock();
@@ -69,16 +67,18 @@ public class GUITemplate extends Canvas implements MouseListener {
 		}
 
 		//Print the stock and talon
-		//System.out.println("Someof");
 		if(stockPrint!=null && !stockPrint.isEmpty()) {
-			//System.out.println("Stock: " + stockPrint);
 			g.drawImage(getCardImage((Card) stockPrint.peek())
 			, marginX, marginY, cardWidth, cardHeight, null);
+		} else {
+			g.drawRect(marginX, marginY, cardWidth, cardHeight);
 		}
+
 		if(talonPrint!=null && !talonPrint.isEmpty()) {
-			//System.out.println("Talon: " + talonPrint);
 			g.drawImage(getCardImage((Card) talonPrint.peek())
 			, marginX+cardMarginX+cardWidth, marginY, cardWidth, cardHeight, null);
+		} else {
+			g.drawRect(marginX+(cardMarginX+cardWidth), marginY, cardWidth, cardHeight);
 		}
 
 		//Print the foundations
@@ -86,6 +86,8 @@ public class GUITemplate extends Canvas implements MouseListener {
 			if(foundationsPrint[c]!=null && !foundationsPrint[c].isEmpty()) {
 				g.drawImage(getCardImage((Card) foundationsPrint[c].peek())
 				, marginX+(cardMarginX+cardWidth)*(c+3), marginY, cardWidth, cardHeight, null);
+			} else {
+				g.drawRect(marginX+(cardMarginX+cardWidth)*(c+3), marginY, cardWidth, cardHeight);
 			}
 		}
 
@@ -99,6 +101,8 @@ public class GUITemplate extends Canvas implements MouseListener {
 					, marginX+(cardMarginX+cardWidth)*c, marginY+cardHeight+cardMarginY+(t*cardSliver), cardWidth, cardHeight, null);
 					t++;
 				}
+			} else {
+				g.drawRect(marginX+(cardMarginX+cardWidth)*c, marginY+cardHeight+cardMarginY+(y*cardSliver), cardWidth, cardHeight);
 			}
 		}
 	}
@@ -116,7 +120,7 @@ public class GUITemplate extends Canvas implements MouseListener {
 		System.out.println("" + x + " and " + y);
 		int[] dmp = getChosenPile(x,y); // A y value of 0 means 'top of the pile'
 		System.out.println("" + dmp[0] + " and " + dmp[1]);
-		processInput(dmp[0], [dmp[1]);
+		processInput(dmp[0], dmp[1]);
 	}
 
 	private void processInput(int pile, int cardPos) {
