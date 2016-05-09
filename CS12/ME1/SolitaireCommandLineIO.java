@@ -1,5 +1,4 @@
 package me1.delacruz;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class SolitaireCommandLineIO implements SolitaireIO {
@@ -99,6 +98,9 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			}
 			System.out.print("\n");
 		}
+
+		System.out.println("MoveStack:");
+		System.out.println(this.game.getMoves());
 	}
 
 	public boolean getGameInput(Object o) { //returns false only if quit is chosen
@@ -204,7 +206,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 					}
 					break;
 				case 7: //Throw away a card
-					game.throwAway((Card) hand.pop());
+					while(!hand.isEmpty()) game.throwAway((Card) hand.pop());
 					break;
 				case 8: //Redeal
 					if(game.redeal() == -1) {
@@ -237,6 +239,8 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 					error = 1;
 					break;
 			}
+			// Check for face down cards in the tableus
+			//if(ch > 4 && ch < 8 && error == 0) game.closeTableus();
 			// Check if hand has a null card
 			if(hand == null || (hand.peek() == null && !hand.isEmpty())) {
 				error = 5;

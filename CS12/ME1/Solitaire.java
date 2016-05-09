@@ -15,22 +15,28 @@ import java.util.Arrays;
 */
 
 public class Solitaire {
-	private Card deck[] = new Card[52];
+	private Card deck[];
 	private LinkedStack talon;
-	private LinkedStack foundations[] = new LinkedStack[4];
+	private LinkedStack foundations[];
 	private LinkedStack stock;
-	private LinkedStack tableu[] = new LinkedStack[7];
+	private LinkedStack tableu[];
 	private LinkedStack hand;
-	private int redealsLeft = 3;
+	private LinkedStack moves;
+	private int redealsLeft;
 
 	/**
 	* This constructor initializes the foundations and tableus, shuffles the deck,
 	* and distributes the cards accordingly.
 	*/
 	public Solitaire() {
+		this.deck = new Card[52];
+		this.foundations = new LinkedStack[4];
+		this.tableu = new LinkedStack[7];
 		this.talon = new LinkedStack();
 		this.stock = new LinkedStack();
 		this.hand = new LinkedStack();
+		this.moves = new LinkedStack();
+		this.redealsLeft = 2;
 
 		for(int x=0; x<4; x++){
 			this.foundations[x] = new LinkedStack();
@@ -93,6 +99,19 @@ public class Solitaire {
 	public LinkedStack[] getTableus() { return this.tableu; }
 	public int getRedealsLeft() { return this.redealsLeft; }
 	public LinkedStack getHand() { return this.hand; }
+	public LinkedStack getMoves() { return this.moves; }
+
+	public int closeTableus() {
+		int i = 0;
+		for(; i<7; i++) {
+			if(!this.tableu[i].isEmpty() && !((Card) this.tableu[i].peek()).getFaceUp()) {
+				faceCard((Card) this.tableu[i].peek(), true);
+				this.moves.push(new Move(i+7, i+7, 1));
+				return i;
+			}
+		}
+		return -1;
+	}
 
 	/**
 	* Flips up or down a Card. Since Cards popped / peeked from a
@@ -129,7 +148,13 @@ public class Solitaire {
 	* Throws away a Card by moving it to the Talon pile.
 	* @param card Card to be thrown.
 	*/
-	public void throwAway(Card card) { if(card != null) this.talon.push(card); }
+	public void throwAway(Card card) {
+		if(card != null) this.talon.push(card);
+		this.moves.push(new Move(2,1,1));
+
+		// Set the tableus
+		this.closeTableus();
+	}
 
 	/**
 	* Checks if the game is already won or not.
@@ -255,6 +280,7 @@ public class Solitaire {
 		Card output = (Card) this.stock.pop();
 		output.setFaceUp(true);
 		this.talon.push(output);
+		this.moves.push(new Move(0, 1, 1));
 	}
 
 	/**
@@ -272,6 +298,11 @@ public class Solitaire {
 		if(!this.foundations[pile].isEmpty() &&
 			card.getRank() - ((Card) this.foundations[pile].peek()).getRank() != 1) return false;
 		this.foundations[pile].push(card);
+
+		this.moves.push(new Move(2, pile, 1));
+
+		// Set the tableus
+		this.closeTableus();
 		return true;
 	}
 
@@ -281,11 +312,16 @@ public class Solitaire {
 	* @return Whether or not the card was successfully moved.
 	*/
 	public boolean moveToTableu(Card card, int pile) {
-		if(!isAlternating(card, (Card) this.tableu[pile].peek())) return false;
+		if(((Card) this.tableu[pile].peek()).getFaceUp() && !isAlternating(card, (Card) this.tableu[pile].peek())) return false;
 		if(this.tableu[pile].isEmpty() && card.getRank() != 13) return false;
-		if(!this.tableu[pile].isEmpty() &&
+		if(!this.tableu[pile].isEmpty() && ((Card) this.tableu[pile].peek()).getFaceUp() &&
 			((Card) this.tableu[pile].peek()).getRank() - card.getRank() != 1) return false;
 		this.tableu[pile].push(card);
+
+		this.moves.push(new Move(2, pile+7, 1));
+
+		// Set the tableus
+		this.closeTableus();
 		return true;
 	}
 
@@ -301,6 +337,7 @@ public class Solitaire {
 			if(Constant.SUITS[s] == suit) break;
 		}
 		if(this.foundations[s].isEmpty()) return null;
+		this.moves.push(new Move(s, 2, 1));
 		return (Card) this.foundations[s].pop();
 	}
 
@@ -322,7 +359,8 @@ public class Solitaire {
 			output.push(this.tableu[pile].pop());
 			if(this.tableu[pile].isEmpty()) break;
 		}
-		if(!this.tableu[pile].isEmpty()) this.faceCard((Card) this.tableu[pile].peek(), true);
+		//if(!this.tableu[pile].isEmpty()) this.faceCard((Card) this.tableu[pile].peek(), true);
+		this.moves.push(new Move(pile+7, 2, output.getSize()));
 		return output;
 	}
 
@@ -331,6 +369,7 @@ public class Solitaire {
 	* @return Card drawn from the talon.
 	*/
 	public Card getFromTalon() {
+		this.moves.push(new Move(1, 2, 1));
 		return (Card) this.talon.pop();
 	}
 
