@@ -6,30 +6,28 @@ import java.awt.image.*;
 import java.io.*;
 import javax.imageio.*;
 
-public class GUITemplate extends Canvas implements MouseListener {
+public class GUITemplate extends Canvas {
 	private BufferedImage img;
-	private int width = 600;
-	private int height = 610;
-	private int cardWidth = 70;
-	private int cardHeight = 95;
-	private int cardMarginX = 10;
-	private int cardMarginY = 20;
-	private int cardSliver = 20;
-	private int marginX = 20;
-	private int marginY = 25;
+	private static int width = 600;
+	private static int height = 610;
+	private static int cardWidth = 70;
+	private static int cardHeight = 95;
+	private static int cardMarginX = 10;
+	private static int cardMarginY = 20;
+	private static int cardSliver = 20;
+	private static int marginX = 20;
+	private static int marginY = 25;
 
 	private Solitaire game;
-	private SolitaireIO controller;
 	private LinkedStack stockPrint;
 	private LinkedStack talonPrint;
 	private LinkedStack[] foundationsPrint;
 	private LinkedStack[] tableusPrint;
 
-	public GUITemplate(Solitaire game, SolitaireIO controller) {
+	public GUITemplate(Solitaire game, MouseListener listener) {
 		setSize(width, height);
 		this.game = game;
-		this.controller = controller;
-		this.addMouseListener(this);
+		this.addMouseListener(listener);
 	}
 
 	private int row2PositionsX(int x) { return marginX+(cardMarginX+cardWidth)*x; }
@@ -56,7 +54,7 @@ public class GUITemplate extends Canvas implements MouseListener {
 		talonPrint = game.getTalon();
 		foundationsPrint = new LinkedStack[4];
 		for(int c = 0; c < 4; c++) {
-			foundationsPrint[c] = game.getFoundations()[c].getReverse();
+			foundationsPrint[c] = game.getFoundations()[c];
 		}
 		tableusPrint = new LinkedStack[7];
 		for(int c = 0; c < 7; c++) {
@@ -104,66 +102,33 @@ public class GUITemplate extends Canvas implements MouseListener {
 		}
 	}
 
-	public void mouseEntered(MouseEvent e) {
-
-	}
-
-	public void mouseExited(MouseEvent e) {
-
-	}
-
-	public void mouseClicked(MouseEvent e) {
-		int x = e.getX(), y = e.getY();
-		LinkedStack response = new LinkedStack();
-		System.out.println("" + x + " and " + y);
-		int[] dmp = getChosenPile(x,y); // A y value of 0 means 'top of the pile'
-		System.out.println("" + dmp[0] + " and " + dmp[1]);
-		response.push(new Integer(dmp[1]));
-		response.push(new Integer(dmp[0]));
-		this.controller.getGameInput(response);
-	}
-
-	private int[] getChosenPile(int x, int y) { //returns a 2 int array; 1st one indicates the pile, 2nd one indicates the card index
-		int[] output = {2,0}; // The empty pile between the talon and foundations
+	public static int[] getChosenPile(int x, int y) { //returns a 2 int array; 1st one indicates the pile, 2nd one indicates the card index
+		int[] output = {-1,0}; // The empty pile between the talon and foundations
 		x -= cardMarginX;
 		output[0] = x / (cardWidth+cardMarginX);
 		if (y > marginY && y < marginY+cardHeight) {
 			System.out.println("StockTalon");
 			output[1] = 0;
-			if (output[0] == 7) output[0] = -1;
+			if (output[0] == 7 || output[0] == 2) output[0] = -1;
 		} else if (y > marginY+cardHeight+cardMarginY && y < height-marginY) {
 			System.out.println("Tableus");
 			output[0] += 7;
 			y -= (marginY+cardMarginY+cardHeight);
+			/* Code changed because of problems with static references
 			if(output[0] >= 7 && output[0] < 14) {
-				output[1] = this.game.getTableus()[output[0] - 7].getSize() - (y / cardSliver) - 1;
+				output[1] = tableusPrint[output[0] - 7].getSize() - (y / cardSliver) - 1;
 			}
-			if(output[1] < 0 && output[1] > -5) output[1] = 0;
+			*/
+			if(output[0] >= 7 && output[0] < 14) {
+				output[1] = (y / cardSliver);
+			} else {
+				output[0] = -1;
+			}
 		} else {
 			System.out.println("Border");
+			output[0] = -1;
 		}
 		return output;
-	}
-
-	public void mousePressed(MouseEvent e) {
-
-	}
-
-	public void mouseReleased(MouseEvent e) {
-
-	}
-
-	public static String getCardImageName(Card c) {
-		if(! c.getFaceUp()) return "./imagedeck/155.png";
-		int cardnum = 0;
-		switch(c.getSuit()) {
-			case DIAMONDS: cardnum = 0; break;
-			case CLUBS: cardnum = 13; break;
-			case HEARTS: cardnum = 26; break;
-			case SPADES: cardnum = 39; break;
-		}
-		cardnum += c.getRank();
-		return "./imagedeck/1" + (cardnum < 10 ? ("0" + cardnum) : cardnum) + ".png";
 	}
 
 	// Ask sir if we can use his code for image reading

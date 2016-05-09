@@ -13,7 +13,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 
 	public SolitaireCommandLineIO() {
 		this.game = new Solitaire();
-		this.hand = new LinkedStack();
+		this.hand = this.game.getHand();
 		this.error = 0;
 		this.sc = new Scanner(System.in);
 		this.ch = 0;
@@ -222,6 +222,16 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 				case 11: //Load
 					System.out.print("Enter the filename:: ");
 					if(!game.loadGame(sc.nextLine())) error = 7;
+					break;
+				case 12: // Test the tableuToFoundation
+					System.out.println("Enter tableuPile, foundationPile, and amount: ");
+					int tP = numberInput();
+					int fP = numberInput();
+					int am = numberInput();
+					System.out.println(tP + " " + fP + " " + am);
+					if(!game.tableuToFoundation(tP, fP, am)) {
+						error = 3;
+					}
 					break;
 				default:
 					error = 1;

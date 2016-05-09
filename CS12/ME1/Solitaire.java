@@ -16,10 +16,11 @@ import java.util.Arrays;
 
 public class Solitaire {
 	private Card deck[] = new Card[52];
-	private LinkedStack talon = new LinkedStack();
+	private LinkedStack talon;
 	private LinkedStack foundations[] = new LinkedStack[4];
-	private LinkedStack stock = new LinkedStack();
+	private LinkedStack stock;
 	private LinkedStack tableu[] = new LinkedStack[7];
+	private LinkedStack hand;
 	private int redealsLeft = 3;
 
 	/**
@@ -27,6 +28,10 @@ public class Solitaire {
 	* and distributes the cards accordingly.
 	*/
 	public Solitaire() {
+		this.talon = new LinkedStack();
+		this.stock = new LinkedStack();
+		this.hand = new LinkedStack();
+
 		for(int x=0; x<4; x++){
 			this.foundations[x] = new LinkedStack();
 		}
@@ -45,6 +50,41 @@ public class Solitaire {
 	}
 
 	/**
+	* The following methods use the methods given here to move around the cards in specific ways
+	*/
+	public boolean tableuToFoundation(int tableuPile, int foundationPile, int amount) {
+		if(amount != 1) return false;
+		else {
+			// Check if the suits correspond
+			/*
+			if(!this.tableu[tableuPile].isEmpty() && ((Card) this.tableu[tableuPile].peek()).getSuit() == Constant.SUITS[foundationPile]) {
+				// Check if the ranking is proper
+				if(((Card) this.tableu[tableuPile].peek())) {
+
+				}
+			} else {
+				return false;
+			}
+			*/
+
+			// Attempt first
+			this.hand = this.getFromTableu(tableuPile, 1);
+			if(this.hand != null && this.moveToFoundation((Card) this.hand.peek())) {
+				// Success
+				this.hand.pop();
+				return true;
+			} else {
+				// Failure; return the cards
+				if(!this.tableu[tableuPile].isEmpty()) {
+					((Card) this.tableu[tableuPile].peek()).setFaceUp(false);
+				}
+				this.tableu[tableuPile].push(this.hand.pop());
+				return false;
+			}
+		}
+	}
+
+	/**
 	* The following accessor methods are for use by the SolitaireIO classes.
 	*/
 	public LinkedStack getTalon() { return this.talon; }
@@ -52,6 +92,7 @@ public class Solitaire {
 	public LinkedStack getStock() { return this.stock; }
 	public LinkedStack[] getTableus() { return this.tableu; }
 	public int getRedealsLeft() { return this.redealsLeft; }
+	public LinkedStack getHand() { return this.hand; }
 
 	/**
 	* Flips up or down a Card. Since Cards popped / peeked from a
