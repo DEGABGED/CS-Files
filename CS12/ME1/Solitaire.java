@@ -101,7 +101,9 @@ public class Solitaire {
 	public LinkedStack getHand() { return this.hand; }
 	public LinkedStack getMoves() { return this.moves; }
 
-	public int closeTableus() {
+	public void setHand(LinkedStack hand) { this.hand = hand; }
+
+	private int openTableus() {
 		int i = 0;
 		for(; i<7; i++) {
 			if(!this.tableu[i].isEmpty() && !((Card) this.tableu[i].peek()).getFaceUp()) {
@@ -111,6 +113,39 @@ public class Solitaire {
 			}
 		}
 		return -1;
+	}
+
+	public void undo() {
+		if (this.moves.isEmpty()) return;
+		Move move = (Move) this.moves.pop();
+		LinkedStack src = new LinkedStack(), dest = new LinkedStack();
+
+		// Set the src and dest stacks
+		if (move.getSrc() < 0 || move.getSrc() >= 14) return;
+		else if (move.getSrc() == 0) src = this.stock;
+		else if (move.getSrc() == 1) src = this.talon;
+		else if (move.getSrc() == 2) src = this.hand;
+		else if (move.getSrc() < 7) src = this.foundations[move.getSrc() - 3];
+		else src = this.tableu[move.getSrc() - 7];
+
+		if (move.getDest() < 0 || move.getDest() >= 14) return;
+		else if (move.getDest() == 0) dest = this.stock;
+		else if (move.getDest() == 1) dest = this.talon;
+		else if (move.getDest() == 2) dest = this.hand;
+		else if (move.getDest() < 7) dest = this.foundations[move.getDest() - 3];
+		else dest = this.tableu[move.getDest() - 7];
+
+		if (move.getSrc() == move.getDest()) {
+			// Card unflipping
+			faceCard((Card) src.peek(), move.getCount() == 0);
+			return;
+		}
+
+		for(int i=0; i<move.getCount(); i++) {
+			src.push(dest.pop());
+			if(move.getSrc() == 0) faceCard((Card) src.peek(), false);
+		}
+		return;
 	}
 
 	/**
@@ -153,7 +188,7 @@ public class Solitaire {
 		this.moves.push(new Move(2,1,1));
 
 		// Set the tableus
-		this.closeTableus();
+		this.openTableus();
 	}
 
 	/**
@@ -299,10 +334,10 @@ public class Solitaire {
 			card.getRank() - ((Card) this.foundations[pile].peek()).getRank() != 1) return false;
 		this.foundations[pile].push(card);
 
-		this.moves.push(new Move(2, pile, 1));
+		this.moves.push(new Move(2, pile+3, 1));
 
 		// Set the tableus
-		this.closeTableus();
+		this.openTableus();
 		return true;
 	}
 
@@ -312,8 +347,10 @@ public class Solitaire {
 	* @return Whether or not the card was successfully moved.
 	*/
 	public boolean moveToTableu(Card card, int pile) {
-		if(((Card) this.tableu[pile].peek()).getFaceUp() && !isAlternating(card, (Card) this.tableu[pile].peek())) return false;
 		if(this.tableu[pile].isEmpty() && card.getRank() != 13) return false;
+		if(!this.tableu[pile].isEmpty()
+			&& ((Card) this.tableu[pile].peek()).getFaceUp()
+			&& !isAlternating(card, (Card) this.tableu[pile].peek())) return false;
 		if(!this.tableu[pile].isEmpty() && ((Card) this.tableu[pile].peek()).getFaceUp() &&
 			((Card) this.tableu[pile].peek()).getRank() - card.getRank() != 1) return false;
 		this.tableu[pile].push(card);
@@ -321,7 +358,7 @@ public class Solitaire {
 		this.moves.push(new Move(2, pile+7, 1));
 
 		// Set the tableus
-		this.closeTableus();
+		this.openTableus();
 		return true;
 	}
 
@@ -337,7 +374,7 @@ public class Solitaire {
 			if(Constant.SUITS[s] == suit) break;
 		}
 		if(this.foundations[s].isEmpty()) return null;
-		this.moves.push(new Move(s, 2, 1));
+		this.moves.push(new Move(s+3, 2, 1));
 		return (Card) this.foundations[s].pop();
 	}
 

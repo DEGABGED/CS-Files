@@ -3,7 +3,6 @@ import java.util.Scanner;
 
 public class SolitaireCommandLineIO implements SolitaireIO {
 	private Solitaire game;
-	private LinkedStack hand;
 	private int error;
 	private Scanner sc;
 	private int ch;
@@ -12,7 +11,6 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 
 	public SolitaireCommandLineIO() {
 		this.game = new Solitaire();
-		this.hand = this.game.getHand();
 		this.error = 0;
 		this.sc = new Scanner(System.in);
 		this.ch = 0;
@@ -108,7 +106,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 		do {
 			error = 0;
 			this.printGameState();
-			System.out.println("\nHand: " + hand);
+			System.out.println("\nHand: " + game.getHand());
 			System.out.println("\nWhat would you like to do?");
 			System.out.print( "1 - Draw from Stock      "
 							+ "2 - Draw from Foundation "
@@ -134,7 +132,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			if(ch == 0) return false;
 
 			// Check if hand is empty
-			if(!hand.isEmpty() && (ch < 5 || ch == 8 || ch == 10 || ch == 11)) {
+			if(!game.getHand().isEmpty() && (ch < 5 || ch == 8 || ch == 10 || ch == 11)) {
 				flush();
 				error = 2;
 				System.out.print(String.format(Constant.TEMPLATE, Constant.ERRORS[error]));
@@ -157,7 +155,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 						error = 9;
 						break;
 					}
-					hand.push(game.getFromFoundation(Constant.SUITS[pilenumber - 1]));
+					game.getHand().push(game.getFromFoundation(Constant.SUITS[pilenumber - 1]));
 					break;
 				case 3: //Draw from Tableu
 					System.out.print("Which tableu pile number?\n:: ");
@@ -172,22 +170,22 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 						error = 1;
 						break;
 					}
-					hand = game.getFromTableu(pilenumber - 1, amount);
+					game.setHand(game.getFromTableu(pilenumber - 1, amount));
 					break;
 				case 4: //Draw from Talon
-					hand.push(game.getFromTalon());
+					game.getHand().push(game.getFromTalon());
 					break;
 				case 5: //Place on Foundation
-					if(hand.getSize() > 1) {
+					if(game.getHand().getSize() > 1) {
 						error = 8;
 						break;
 					}
-					if(!hand.isEmpty()) {
-						if(!game.moveToFoundation((Card) hand.peek())){
+					if(!game.getHand().isEmpty()) {
+						if(!game.moveToFoundation((Card) game.getHand().peek())){
 							error = 3;
 							break;
 						}
-						hand.pop();
+						game.getHand().pop();
 					}
 					break;
 				case 6: //Place on Tableu
@@ -197,16 +195,16 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 						error = 9;
 						break;
 					}
-					while(!hand.isEmpty()) {
-						if(!game.moveToTableu((Card) hand.peek(), pilenumber - 1)){
+					while(!game.getHand().isEmpty()) {
+						if(!game.moveToTableu((Card) game.getHand().peek(), pilenumber - 1)){
 							error = 4;
 							break;
 						}
-						hand.pop();
+						game.getHand().pop();
 					}
 					break;
 				case 7: //Throw away a card
-					while(!hand.isEmpty()) game.throwAway((Card) hand.pop());
+					while(!game.getHand().isEmpty()) game.throwAway((Card) game.getHand().pop());
 					break;
 				case 8: //Redeal
 					if(game.redeal() == -1) {
@@ -215,7 +213,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 					break;
 				case 9: //Reset game
 					game = new Solitaire();
-					hand.clear();
+					game.getHand().clear();
 					break;
 				case 10: //Save
 					System.out.print("Enter the filename:: ");
@@ -225,26 +223,24 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 					System.out.print("Enter the filename:: ");
 					if(!game.loadGame(sc.nextLine())) error = 7;
 					break;
-				case 12: // Test the tableuToFoundation
-					System.out.println("Enter tableuPile, foundationPile, and amount: ");
-					int tP = numberInput();
-					int fP = numberInput();
-					int am = numberInput();
-					System.out.println(tP + " " + fP + " " + am);
-					if(!game.tableuToFoundation(tP, fP, am)) {
-						error = 3;
-					}
+				case 12: // Undo
+					game.undo();
+					break;
+				case 99: // View stacks
+					System.out.println("Hand: " + game.getHand());
+					System.out.println("Local Hand: " + game.getHand());
 					break;
 				default:
 					error = 1;
 					break;
 			}
 			// Check for face down cards in the tableus
-			//if(ch > 4 && ch < 8 && error == 0) game.closeTableus();
+			//if(ch > 4 && ch < 8 && error == 0) game.openTableus();
 			// Check if hand has a null card
-			if(hand == null || (hand.peek() == null && !hand.isEmpty())) {
+			if(game.getHand() == null || (!game.getHand().isEmpty() && game.getHand().peek() == null)) {
+				System.out.println("Hand is / has null");
 				error = 5;
-				hand = new LinkedStack();
+				game.setHand(new LinkedStack());
 			}
 			flush();
 			// Check for and display errors
@@ -256,7 +252,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 				dmp = sc.nextLine();
 				if(dmp.equalsIgnoreCase("y")){
 					game = new Solitaire();
-					hand.clear();
+					game.getHand().clear();
 					flush();
 				} else {
 					return false;
