@@ -15,14 +15,14 @@ import java.util.Arrays;
 */
 
 public class Solitaire {
-	private Card deck[];
-	private LinkedStack talon;
-	private LinkedStack foundations[];
-	private LinkedStack stock;
-	private LinkedStack tableu[];
-	private LinkedStack hand;
-	private LinkedStack moves;
-	private int redealsLeft;
+	protected Card deck[];
+	protected LinkedStack talon;
+	protected LinkedStack foundations[];
+	protected LinkedStack stock;
+	protected LinkedStack tableu[];
+	protected LinkedStack hand;
+	protected LinkedStack moves;
+	protected int redealsLeft;
 
 	/**
 	* This constructor initializes the foundations and tableus, shuffles the deck,
@@ -53,41 +53,6 @@ public class Solitaire {
 		//Create the stock and tableus
 		this.shuffle();
 		this.deal();
-	}
-
-	/**
-	* The following methods use the methods given here to move around the cards in specific ways
-	*/
-	public boolean tableuToFoundation(int tableuPile, int foundationPile, int amount) {
-		if(amount != 1) return false;
-		else {
-			// Check if the suits correspond
-			/*
-			if(!this.tableu[tableuPile].isEmpty() && ((Card) this.tableu[tableuPile].peek()).getSuit() == Constant.SUITS[foundationPile]) {
-				// Check if the ranking is proper
-				if(((Card) this.tableu[tableuPile].peek())) {
-
-				}
-			} else {
-				return false;
-			}
-			*/
-
-			// Attempt first
-			this.hand = this.getFromTableu(tableuPile, 1);
-			if(this.hand != null && this.moveToFoundation((Card) this.hand.peek())) {
-				// Success
-				this.hand.pop();
-				return true;
-			} else {
-				// Failure; return the cards
-				if(!this.tableu[tableuPile].isEmpty()) {
-					((Card) this.tableu[tableuPile].peek()).setFaceUp(false);
-				}
-				this.tableu[tableuPile].push(this.hand.pop());
-				return false;
-			}
-		}
 	}
 
 	/**

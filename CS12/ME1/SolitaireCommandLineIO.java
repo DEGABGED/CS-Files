@@ -2,7 +2,7 @@ package me1.delacruz;
 import java.util.Scanner;
 
 public class SolitaireCommandLineIO implements SolitaireIO {
-	private Solitaire game;
+	private SolitaireWrapper game;
 	private int error;
 	private Scanner sc;
 	private int ch;
@@ -10,7 +10,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 	private String dmp;
 
 	public SolitaireCommandLineIO() {
-		this.game = new Solitaire();
+		this.game = new SolitaireWrapper();
 		this.error = 0;
 		this.sc = new Scanner(System.in);
 		this.ch = 0;
@@ -212,7 +212,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 					}
 					break;
 				case 9: //Reset game
-					game = new Solitaire();
+					game = new SolitaireWrapper();
 					game.getHand().clear();
 					break;
 				case 10: //Save
@@ -226,6 +226,11 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 				case 12: // Undo
 					game.undo();
 					break;
+				case 13: // Test moveSingleCard
+					System.out.print("Enter src and dest piles:: ");
+					int srcp = numberInput();
+					int destp = numberInput();
+					this.game.moveSingleCard(srcp, destp);
 				case 99: // View stacks
 					System.out.println("Hand: " + game.getHand());
 					System.out.println("Local Hand: " + game.getHand());
@@ -251,7 +256,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 				System.out.print("\n\nTry again? (Y/N)\n:: ");
 				dmp = sc.nextLine();
 				if(dmp.equalsIgnoreCase("y")){
-					game = new Solitaire();
+					game = new SolitaireWrapper();
 					game.getHand().clear();
 					flush();
 				} else {
