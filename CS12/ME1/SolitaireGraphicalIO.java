@@ -51,28 +51,13 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 				int[] moves = new int[4];
 				for(int i=3; i>=0; i--) moves[i] = ((Integer) move.pop()).intValue();
 				System.out.println("Processing " + Arrays.toString(moves));
-				if (moves[0] >= 7 && moves[0] < 14) {
-					// Src: tableu
-					if (moves[2] >= 3 && moves[2] < 7) {
-						// Dest: foundation
-						hand = game.getFromTableu(moves[0] - 7, moves[1] + 1);
-						if(hand == null) {
-							move.clear();
-							return false;
-						}
-						System.out.println("Hand: " + hand);
-						if(!game.moveToFoundation((Card) hand.peek())){
-							error = 3;
-							// Move cards back to the tableu
-							((Card) game.getTableus()[moves[0] - 7].peek()).setFaceUp(false);
-							while(!hand.isEmpty()) {
-								game.getTableus()[moves[0] - 7].push(hand.pop());
-							}
-							move.clear();
-							return false;
-						}
-						hand.pop();
-					}
+				moves[1]++; // convert card num index to card num
+				if (moves[1] < 2) {
+					// Single card
+					if (!this.game.moveSingleCard(moves[0], moves[2])) return false;
+				} else {
+					// Multiple cards
+					if (!this.game.moveMultipleCards(moves[0], moves[2], moves[1])) return false;
 				}
 			}
 			move.clear();
@@ -85,14 +70,14 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 	private JLabel status;
 	private JMenu menuBar;
 
-	private Solitaire game;
+	private SolitaireWrapper game;
 	private LinkedStack hand;
 	private int error;
 	private LinkedStack move;
 
 	public SolitaireGraphicalIO() {
 		// For the game itself
-		this.game = new Solitaire();
+		this.game = new SolitaireWrapper();
 		this.game.loadGame("outputres.sltr");
 		this.hand = new LinkedStack();
 		this.error = 0;
