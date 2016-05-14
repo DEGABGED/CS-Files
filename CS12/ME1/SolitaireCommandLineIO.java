@@ -231,6 +231,12 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 					int srcp = numberInput();
 					int destp = numberInput();
 					this.game.moveSingleCard(srcp, destp);
+				case 14: // Test moveMultipleCards
+					System.out.print("Enter src dest and amount:: ");
+					int tsrcp = numberInput();
+					int tdestp = numberInput();
+					int tamt = numberInput();
+					this.game.moveMultipleCards(tsrcp, tdestp, tamt);
 				case 99: // View stacks
 					System.out.println("Hand: " + game.getHand());
 					System.out.println("Local Hand: " + game.getHand());

@@ -59,6 +59,36 @@ public class SolitaireWrapper extends Solitaire {
 	 */
 
 	/**
+	 * This method moves a group of cards across tableus
+	 */
+	public boolean moveMultipleCards(int srcPile, int destPile, int amount) {
+		if (srcPile < 7 || srcPile >= 14 || destPile < 7 || destPile >= 14) return false;
+
+		// Get from srcPile to hand
+		this.hand = this.getFromTableu(srcPile-7, amount);
+		if (this.hand == null) {
+			return false;
+		}
+
+		// Move from hand to destPile
+		int i = 0;
+		for (; i<amount; i++) {
+			if (!this.moveToTableu(((Card) this.hand.peek()), destPile-7)) {
+				// Undo
+				while (i > 0) {
+					if (i == 1) this.undo(); // Tableu opening
+					this.undo();
+					i--;
+				}
+				return false;
+			}
+			this.hand.pop();
+		}
+
+		return true;
+	}
+
+	/**
 	* This method moves a single card from either the talon, foundation, or tableu, to any of the other three.
 	*/
 	public boolean moveSingleCard(int srcPile, int destPile) {
