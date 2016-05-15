@@ -7,7 +7,123 @@ import java.awt.event.*;
 import java.util.Arrays;
 
 public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseListener, ActionListener {
+	private GUITemplate canvas;
+	private JFrame frame;
+	private JPanel statusBar;
+	private JLabel status;
+	private JMenuBar menuBar;
+
+	private JMenu options;
+	private JMenuItem newgame;
+	private JMenuItem savegame;
+	private JMenuItem loadgame;
+	private JMenuItem exitgame;
+
+	private SolitaireWrapper game;
+	private LinkedStack hand;
+	private int error;
+	private LinkedStack move;
+
+	public SolitaireGraphicalIO() {
+		// For the game itself
+		this.game = new SolitaireWrapper();
+		this.hand = new LinkedStack();
+		this.error = 0;
+		this.move = new LinkedStack();
+
+		// For the frame and template / view
+		frame = new JFrame();
+		canvas = new GUITemplate(this.game, this);
+		frame.setLayout(new BorderLayout());
+		frame.setTitle("Solitaire (Klondlike)");
+
+		// For the status bar
+		statusBar = new JPanel();
+		frame.add(statusBar, BorderLayout.SOUTH);
+		statusBar.setPreferredSize(new Dimension(getWidth(), 25));
+		statusBar.setBackground(new Color(0x40eb74));
+		statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.X_AXIS));
+		status = new JLabel("  Welcome!");
+		status.setHorizontalAlignment(SwingConstants.LEFT);
+		statusBar.add(status);
+
+		// For the menu bar
+		menuBar = new JMenuBar();
+		options = new JMenu("Options");
+		newgame = new JMenuItem("New Game");
+		newgame.setActionCommand("New");
+		newgame.addActionListener(this);
+		savegame = new JMenuItem("Save Game");
+		savegame.setActionCommand("Save");
+		savegame.addActionListener(this);
+		loadgame = new JMenuItem("Load Game");
+		loadgame.setActionCommand("Load");
+		loadgame.addActionListener(this);
+		exitgame = new JMenuItem("Exit");
+		exitgame.setActionCommand("Exit");
+		exitgame.addActionListener(this);
+
+		options.add(newgame);
+		options.add(savegame);
+		options.add(loadgame);
+		options.add(exitgame);
+		menuBar.add(options);
+		frame.setJMenuBar(menuBar);
+
+		frame.add(canvas, BorderLayout.CENTER);
+		frame.pack();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+		frame.setResizable(false);
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		String source = e.getActionCommand();
+		switch(source) {
+			case "New":
+				this.game = new SolitaireWrapper();
+				this.canvas.setGame(this.game);
+				printGameState();
+				break;
+			case "Save":
+				if (!this.game.saveGame(JOptionPane.showInputDialog("Enter filename/path:: "))) {
+					JOptionPane.showMessageDialog(null, "Sorry, file IO error. Maybe the file path doesn't exist.", "File Error", JOptionPane.ERROR_MESSAGE);
+				}
+				break;
+			case "Load":
+				if(!this.game.loadGame(JOptionPane.showInputDialog("Enter filename/path:: "))) {
+					JOptionPane.showMessageDialog(null, "Sorry, file IO error. Maybe the file path doesn't exist.", "File Error", JOptionPane.ERROR_MESSAGE);
+				} else {
+					printGameState();
+				}
+				break;
+			case "Exit":
+				break;
+		}
+	}
+
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	public void mouseExited(MouseEvent e) {
+	}
+
+	public void mouseClicked(MouseEvent e) {
+		getGameInput(e);
+	}
+
+	public void mousePressed(MouseEvent e) {
+	}
+
+	public void mouseReleased(MouseEvent e) {
+	}
+
 	public void printGameState() {
+		// reprint game status
+		String statusLabel = "  Status: ";
+		statusLabel += "Redeals > " + this.game.getRedealsLeft();
+		statusLabel += ", Stock left > " + this.game.getStock().getSize();
+		status.setText(statusLabel);
 		// repainting
 		this.canvas.repaint();
 	}
@@ -52,8 +168,14 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 	private boolean processGameInput() {
 			this.canvas.setClickedPile(-1);
 			if (move.getSize() == 2) {
-				// Clicked pile is stock; means to move from stock to talon
-				this.game.draw();
+				// Clicked pile is stock
+				// Either move 1 from stock to talon
+				// or move all from talon to stock
+				if (this.game.getStock().isEmpty()) {
+					this.game.redeal();
+				} else {
+					this.game.draw();
+				}
 			} else {
 				int[] moves = new int[4];
 				for(int i=3; i>=0; i--) moves[i] = ((Integer) move.pop()).intValue();
@@ -69,116 +191,4 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 			}
 			return true;
 	}
-
-	private GUITemplate canvas;
-	private JFrame frame;
-	private JPanel statusBar;
-	private JLabel status;
-	private JMenuBar menuBar;
-
-	private JMenu options;
-	private JMenuItem newgame;
-	private JMenuItem savegame;
-	private JMenuItem loadgame;
-	private JMenuItem exitgame;
-
-	private SolitaireWrapper game;
-	private LinkedStack hand;
-	private int error;
-	private LinkedStack move;
-
-	public SolitaireGraphicalIO() {
-		// For the game itself
-		this.game = new SolitaireWrapper();
-		//this.game.loadGame("outputres.sltr");
-		this.hand = new LinkedStack();
-		this.error = 0;
-		this.move = new LinkedStack();
-
-		// For the frame and template / view
-		frame = new JFrame();
-		canvas = new GUITemplate(this.game, this);
-
-		frame.setLayout(new BorderLayout());
-		frame.setTitle("Solitaire (Klondlike)");
-		statusBar = new JPanel();
-		frame.add(statusBar, BorderLayout.SOUTH);
-		statusBar.setPreferredSize(new Dimension(getWidth(), 25));
-		statusBar.setBackground(new Color(0x40eb74));
-		statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.X_AXIS));
-
-		status = new JLabel("  Status: ");
-		status.setHorizontalAlignment(SwingConstants.LEFT);
-		statusBar.add(status);
-
-		//menuBar (soon)
-		menuBar = new JMenuBar();
-		options = new JMenu("Options");
-		newgame = new JMenuItem("New Game");
-		newgame.setActionCommand("New");
-		newgame.addActionListener(this);
-		savegame = new JMenuItem("Save Game");
-		savegame.setActionCommand("Save");
-		savegame.addActionListener(this);
-		loadgame = new JMenuItem("Load Game");
-		loadgame.setActionCommand("Load");
-		loadgame.addActionListener(this);
-		exitgame = new JMenuItem("Exit");
-		exitgame.setActionCommand("Exit");
-		exitgame.addActionListener(this);
-
-		options.add(newgame);
-		options.add(savegame);
-		options.add(loadgame);
-		options.add(exitgame);
-		menuBar.add(options);
-		frame.setJMenuBar(menuBar);
-
-		frame.add(canvas, BorderLayout.CENTER);
-		frame.pack();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setVisible(true);
-		frame.setResizable(false);
-	}
-
-		public void actionPerformed(ActionEvent e) {
-			String source = e.getActionCommand();
-			switch(source) {
-				case "New":
-					this.game = new SolitaireWrapper();
-					this.canvas.setGame(this.game);
-					printGameState();
-					break;
-				case "Save":
-					if (!this.game.saveGame(JOptionPane.showInputDialog("Enter filename/path:: "))) {
-						JOptionPane.showMessageDialog(null, "Sorry, file IO error. Maybe the file path doesn't exist.", "File Error", JOptionPane.ERROR_MESSAGE);
-					}
-					break;
-				case "Load":
-					if(!this.game.loadGame(JOptionPane.showInputDialog("Enter filename/path:: "))) {
-						JOptionPane.showMessageDialog(null, "Sorry, file IO error. Maybe the file path doesn't exist.", "File Error", JOptionPane.ERROR_MESSAGE);
-					} else {
-						printGameState();
-					}
-					break;
-				case "Exit":
-					break;
-			}
-		}
-
-		public void mouseEntered(MouseEvent e) {
-		}
-
-		public void mouseExited(MouseEvent e) {
-		}
-
-		public void mouseClicked(MouseEvent e) {
-			getGameInput(e);
-		}
-
-		public void mousePressed(MouseEvent e) {
-		}
-
-		public void mouseReleased(MouseEvent e) {
-		}
 }
