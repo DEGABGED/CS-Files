@@ -23,11 +23,16 @@ public class GUITemplate extends Canvas {
 	private LinkedStack talonPrint;
 	private LinkedStack[] foundationsPrint;
 	private LinkedStack[] tableusPrint;
+	private int clickedPile;
+	
+	public int getClickedPile() { return this.clickedPile; }
+	public void setClickedPile(int clickedPile) { this.clickedPile = clickedPile; }
 
 	public GUITemplate(Solitaire game, MouseListener listener) {
 		setSize(width, height);
 		this.game = game;
 		this.addMouseListener(listener);
+		this.clickedPile = -1; // A pile has not yet been clicked
 	}
 
 	private int row2PositionsX(int x) { return marginX+(cardMarginX+cardWidth)*x; }
@@ -100,6 +105,24 @@ public class GUITemplate extends Canvas {
 				g.drawRect(marginX+(cardMarginX+cardWidth)*c, marginY+cardHeight+cardMarginY+(y*cardSliver), cardWidth, cardHeight);
 			}
 		}
+
+		//Print the pile indicator
+		System.out.println("clicked " + this.clickedPile);
+		if (this.clickedPile >= 0 && this.clickedPile < 7 && this.clickedPile != 2) {
+			// Point up
+			int triBaseX = marginX + (cardWidth + cardMarginX)*(clickedPile) + 30;
+			int triBaseY = marginY + cardHeight + 11;
+			int xarr[] = {triBaseX, triBaseX+5, triBaseX+10};
+			int yarr[] = {triBaseY, triBaseY-10, triBaseY};
+			g.fillPolygon(xarr, yarr, 3);
+		} else if (this.clickedPile >= 7 && this.clickedPile < 14) {
+			// Point down
+			int triBaseX = marginX + (cardWidth + cardMarginX)*(clickedPile - 7) + 30;
+			int triBaseY = marginY + cardHeight + 1;
+			int xarr[] = {triBaseX, triBaseX+5, triBaseX+10};
+			int yarr[] = {triBaseY, triBaseY+10, triBaseY};
+			g.fillPolygon(xarr, yarr, 3);
+		}
 	}
 
 	public static int[] getChosenPile(int x, int y) { //returns a 2 int array; 1st one indicates the pile, 2nd one indicates the card index
@@ -131,7 +154,6 @@ public class GUITemplate extends Canvas {
 		return output;
 	}
 
-	// Ask sir if we can use his code for image reading
 	public BufferedImage getCardImage(Card c) {
 		String filename = "";
 		if(! c.getFaceUp()){ filename = "./imagedeck/155.png";}

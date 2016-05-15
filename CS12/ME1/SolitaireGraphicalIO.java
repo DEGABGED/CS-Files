@@ -25,9 +25,12 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 		System.out.println("" + cardPos[0] + " and " + cardPos[1]);
 		if (cardPos[0] < 0 || cardPos[1] < 0) {
 			move.clear();
+			this.canvas.setClickedPile(-1);
+			printGameState();
 			return false;
 		}
 
+		this.canvas.setClickedPile(cardPos[0]);
 		// Prepare to move the cards
 		boolean output = true;
 		move.push(new Integer(cardPos[0]));
@@ -37,13 +40,15 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 		}
 		System.out.println(move);
 
-		if(output) {
+		// Change the pointed pile
+		// if(output) {
 			printGameState();
-		}
+		// }
 		return output;
 	}
 
 	private boolean processGameInput() {
+			this.canvas.setClickedPile(-1);
 			if (move.getSize() == 2) {
 				// Clicked pile is stock; means to move from stock to talon
 				this.game.draw();
@@ -60,7 +65,6 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 					if (!this.game.moveMultipleCards(moves[0], moves[2], moves[1])) return false;
 				}
 			}
-			move.clear();
 			return true;
 	}
 
