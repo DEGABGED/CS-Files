@@ -316,7 +316,8 @@ public class Solitaire {
 		if(!this.tableu[pile].isEmpty()
 			&& ((Card) this.tableu[pile].peek()).getFaceUp()
 			&& !isAlternating(card, (Card) this.tableu[pile].peek())) return false;
-		if(!this.tableu[pile].isEmpty() && ((Card) this.tableu[pile].peek()).getFaceUp() &&
+		if(!this.tableu[pile].isEmpty() && 
+			((Card) this.tableu[pile].peek()).getFaceUp() &&
 			((Card) this.tableu[pile].peek()).getRank() - card.getRank() != 1) return false;
 		this.tableu[pile].push(card);
 

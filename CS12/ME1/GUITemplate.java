@@ -27,6 +27,8 @@ public class GUITemplate extends Canvas {
 	
 	public int getClickedPile() { return this.clickedPile; }
 	public void setClickedPile(int clickedPile) { this.clickedPile = clickedPile; }
+	public Solitaire getGame() { return this.game; }
+	public void setGame(Solitaire game) { this.game = game; }
 
 	public GUITemplate(Solitaire game, MouseListener listener) {
 		setSize(width, height);

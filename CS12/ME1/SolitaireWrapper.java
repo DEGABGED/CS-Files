@@ -10,55 +10,6 @@ public class SolitaireWrapper extends Solitaire {
 	*/
 
 	/**
-	* The following method moves a card from a tableu to the foundation
-	*/
-	public boolean tableuToFoundation(int tableuPile, int foundationPile, int amount) {
-		if(amount != 1) return false;
-		else {
-			// Attempt first
-			this.hand = this.getFromTableu(tableuPile, 1);
-			if(this.hand == null) {
-				return false;
-			}
-
-			if(this.moveToFoundation((Card) this.hand.peek())) {
-				// Success
-				this.hand.pop();
-				return true;
-			} else {
-				// Failure; return the cards
-				this.undo(); // Undo moving cards from tableu to hand
-				return false;
-			}
-		}
-	}
-
-	/**
-	* This method moves a card from a foundation to a tableu
-	*/
-	public boolean foundationToTableu(int tableuPile, int foundationPile, int amount) {
-		if(amount != 1) return false;
-		else {
-			if(!this.foundations[foundationPile].isEmpty()) {
-				this.hand.push(this.getFromFoundation(Constant.SUITS[foundationPile]));
-			}
-			if(this.moveToTableu((Card) this.hand.peek(), tableuPile)) {
-				// Success
-				this.hand.pop();
-				return true;
-			} else {
-				// Failure
-				this.undo(); // Undo moving card from foundation to hand
-				return false;
-			}
-		}
-	}
-
-	/**
-	 * This method throws away a card from any of the piles
-	 */
-
-	/**
 	 * This method moves a group of cards across tableus
 	 */
 	public boolean moveMultipleCards(int srcPile, int destPile, int amount) {
@@ -67,15 +18,18 @@ public class SolitaireWrapper extends Solitaire {
 		// Get from srcPile to hand
 		this.hand = this.getFromTableu(srcPile-7, amount);
 		if (this.hand == null) {
+			this.hand = new LinkedStack();
 			return false;
 		}
 
 		// Move from hand to destPile
 		int i = 0;
 		for (; i<amount; i++) {
+			if (this.hand.isEmpty()) break;
 			if (!this.moveToTableu(((Card) this.hand.peek()), destPile-7)) {
+				System.out.println("wopps "+i);
 				// Undo
-				while (i > 0) {
+				while (i >= 0) {
 					if (i == 1) this.undo(); // Tableu opening
 					this.undo();
 					i--;
@@ -121,6 +75,7 @@ public class SolitaireWrapper extends Solitaire {
 			case 13:
 				this.hand = this.getFromTableu(srcPile-7, 1);
 				if(this.hand == null) {
+					this.hand = new LinkedStack();
 					return false;
 				}
 				break;
@@ -163,31 +118,11 @@ public class SolitaireWrapper extends Solitaire {
 					return true;
 				} else {
 						// Failure
-					this.undo(); // Undo moving card from foundation to hand
+					this.undo(); // Undo moving card from src to hand
 					return false;
 				}
 			default:
 				return false;
-		}
-	}
-
-	public LinkedStack getPile(int pile) {
-		switch (pile) {
-			case 0: return this.stock;
-			case 1: return this.talon;
-			case 2: return this.hand;
-			case 3:
-			case 4:
-			case 5:
-			case 6: return this.foundations[pile-3];
-			case 7:
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-			case 12:
-			case 13: return this.tableu[pile-7];
-			default: return null;
 		}
 	}
 }
