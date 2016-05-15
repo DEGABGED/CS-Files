@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
 
-public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseListener, ActionListener {
+public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionListener {
 	private GUITemplate canvas;
 	private JFrame frame;
 	private JPanel statusBar;
@@ -20,16 +20,14 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 	private JMenuItem exitgame;
 
 	private SolitaireWrapper game;
-	private LinkedStack hand;
-	private int error;
 	private LinkedStack move;
+	private int clickedPile;
 
 	public SolitaireGraphicalIO() {
 		// For the game itself
 		this.game = new SolitaireWrapper();
-		this.hand = new LinkedStack();
-		this.error = 0;
 		this.move = new LinkedStack();
+		this.clickedPile = -1;
 
 		// For the frame and template / view
 		frame = new JFrame();
@@ -40,7 +38,7 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 		// For the status bar
 		statusBar = new JPanel();
 		frame.add(statusBar, BorderLayout.SOUTH);
-		statusBar.setPreferredSize(new Dimension(getWidth(), 25));
+		statusBar.setPreferredSize(new Dimension(frame.getWidth(), 25));
 		statusBar.setBackground(new Color(0x40eb74));
 		statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.X_AXIS));
 		status = new JLabel("  Welcome!");
@@ -82,7 +80,6 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 		switch(source) {
 			case "New":
 				this.game = new SolitaireWrapper();
-				this.canvas.setGame(this.game);
 				printGameState();
 				break;
 			case "Save":
@@ -98,6 +95,7 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 				}
 				break;
 			case "Exit":
+				frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 				break;
 		}
 	}
@@ -125,7 +123,7 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 		statusLabel += ", Stock left > " + this.game.getStock().getSize();
 		status.setText(statusLabel);
 		// repainting
-		this.canvas.repaint();
+		this.canvas.updateView(this.game, this.clickedPile);
 	}
 
 	public boolean getGameInput(Object o) {
@@ -141,12 +139,12 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 		System.out.println("" + cardPos[0] + " and " + cardPos[1]);
 		if (cardPos[0] < 0 || cardPos[1] < 0) {
 			move.clear();
-			this.canvas.setClickedPile(-1);
+			this.clickedPile = -1;
 			printGameState();
 			return false;
 		}
 
-		this.canvas.setClickedPile(cardPos[0]);
+		this.clickedPile = cardPos[0];
 		// Prepare to move the cards
 		boolean output = true;
 		move.push(new Integer(cardPos[0]));
@@ -166,7 +164,7 @@ public class SolitaireGraphicalIO extends JFrame implements SolitaireIO, MouseLi
 	}
 
 	private boolean processGameInput() {
-			this.canvas.setClickedPile(-1);
+			this.clickedPile = -1;
 			if (move.getSize() == 2) {
 				// Clicked pile is stock
 				// Either move 1 from stock to talon

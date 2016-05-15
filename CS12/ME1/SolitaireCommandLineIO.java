@@ -1,4 +1,5 @@
 package me1.delacruz;
+
 import java.util.Scanner;
 
 public class SolitaireCommandLineIO implements SolitaireIO {

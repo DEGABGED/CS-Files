@@ -25,37 +25,30 @@ public class GUITemplate extends Canvas {
 	private LinkedStack[] tableusPrint;
 	private int clickedPile;
 	
-	public int getClickedPile() { return this.clickedPile; }
-	public void setClickedPile(int clickedPile) { this.clickedPile = clickedPile; }
-	public Solitaire getGame() { return this.game; }
-	public void setGame(Solitaire game) { this.game = game; }
-
 	public GUITemplate(Solitaire game, MouseListener listener) {
 		setSize(width, height);
 		this.game = game;
 		this.addMouseListener(listener);
 		this.clickedPile = -1; // A pile has not yet been clicked
+		this.setPiles();
 	}
 
 	private int row2PositionsX(int x) { return marginX+(cardMarginX+cardWidth)*x; }
 	private int row2PositionsY(int y) { return marginY+cardHeight+cardMarginY+(y*cardSliver); }
 
-	// The printGameState function in SGUIO will parse the card piles and pass them here
-	public void paint(Graphics ga) {
-		int x = 0, y = 0;
-		Graphics2D g = (Graphics2D) ga;
-		g.setColor(new Color(0x00bb44)); //greeeen
-		g.fillRect(0, 0, width, height);
+	/**
+	 * This method takes the shit from the controller that it needs to live.
+	 */
+	public void updateView(Solitaire game, int clickedPile) {
+		// Set the clicked pile and game
+		this.game = game;
+		this.clickedPile = clickedPile;
 
-		g.setColor(Color.BLACK);
-		// Draw the empty piles first
-		/*
-		for(x = 0; x < 7; x++) {
-			if(x != 2) g.drawRect(marginX+(cardMarginX+cardWidth)*x, marginY, cardWidth, cardHeight);
-			g.drawRect(marginX+(cardMarginX+cardWidth)*x, marginY+cardHeight+cardMarginY+(y*cardSliver), cardWidth, cardHeight);
-		}
-		*/
+		this.setPiles();
+		this.repaint();
+	}
 
+	public void setPiles() {
 		// Get the list of cards to print, and in what order
 		stockPrint = game.getStock();
 		talonPrint = game.getTalon();
@@ -67,6 +60,16 @@ public class GUITemplate extends Canvas {
 		for(int c = 0; c < 7; c++) {
 			tableusPrint[c] = game.getTableus()[c].getReverse();
 		}
+		System.out.println(stockPrint);
+	}
+
+	// The printGameState function in SGUIO will parse the card piles and pass them here
+	public void paint(Graphics ga) {
+		int x = 0, y = 0;
+		Graphics2D g = (Graphics2D) ga;
+		g.setColor(new Color(0x00bb44)); //greeeen
+		g.fillRect(0, 0, width, height);
+		g.setColor(Color.BLACK);
 
 		//Print the stock and talon
 		if(stockPrint!=null && !stockPrint.isEmpty()) {

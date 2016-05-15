@@ -47,12 +47,10 @@ public class SolitaireWrapper extends Solitaire {
 	*/
 	public boolean moveSingleCard(int srcPile, int destPile) {
 		if (srcPile == 2 || destPile == 2) return false; // This method is supposed to skip the hand
-		if (srcPile < 0 || srcPile >= 14 || destPile < 0 || destPile >= 14) return false;
+		if (srcPile <= 0 || srcPile >= 14 || destPile <= 0 || destPile >= 14) return false; // You cannot move move or to the stock directly
 
 		// Get from srcPile to hand
 		switch (srcPile) {
-			case 0:
-				return false; // You cannot get from the stock directly; you'd have to call draw()
 			case 1:
 				this.hand.push(this.getFromTalon());
 				break;
