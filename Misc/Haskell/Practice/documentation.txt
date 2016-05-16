@@ -28,4 +28,17 @@ Apr 5
     I also searched for other Haskell exercises and tried to do a handful of them. At this point in time, I stopped reading the book just before IO, so I still don't know about monads, functors, etc. I plan to continue in the near future.
 ~~~~~
 Apr 8
-    I started writing this documentation. I'm also resting from Haskell to focus on UPrint first.
+    I started writing this documentation. I'm also resting from Haskell to focus on UPrint and other avenues first.
+~~~~
+Apr 29
+	I started learning about modules (eg. the Data.List module), module creation, and derived instances and types (in the LYAHFGG pdf).
+~~~~
+May 3
+	I read about typeclasses and functors, as well as basic IO. I also tried to implement a LinkedList in Haskell.
+~~~~
+May 5
+	I implemented a LinkedList and Stack in Haskell. Also, as you may have noticed, my documentation and study has become less extensive, mostly due to acads, UPrint, and learning other stuff in parallel (eg. I'm currently in the process of learning intermediate Vim hahaha).
+
+	As of now, I've yet to go halfway past IO, and I'm far away from learning advanced functors and monads, unfortunately :(
+
+Link to my Haskell practice files: https://github.com/DEGABGED/CS-Files/tree/sandbox/Misc/Haskell/Practice
