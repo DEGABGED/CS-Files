@@ -1,4 +1,4 @@
-if javac -d . *.java
+if javac -d . *.java -Xlint:unchecked
 then
 	echo "Successful compilation."
 	java me1/delacruz/Main

@@ -18,7 +18,7 @@ public class SolitaireWrapper extends Solitaire {
 		// Get from srcPile to hand
 		this.hand = this.getFromTableu(srcPile-7, amount);
 		if (this.hand == null) {
-			this.hand = new LinkedStack();
+			this.hand = new Deck();
 			return false;
 		}
 
@@ -26,7 +26,7 @@ public class SolitaireWrapper extends Solitaire {
 		int i = 0;
 		for (; i<amount; i++) {
 			if (this.hand.isEmpty()) break;
-			if (!this.moveToTableu(((Card) this.hand.peek()), destPile-7)) {
+			if (!this.moveToTableu((this.hand.peek()), destPile-7)) {
 				System.out.println("wopps "+i);
 				// Undo
 				while (i >= 0) {
@@ -73,7 +73,7 @@ public class SolitaireWrapper extends Solitaire {
 			case 13:
 				this.hand = this.getFromTableu(srcPile-7, 1);
 				if(this.hand == null) {
-					this.hand = new LinkedStack();
+					this.hand = new Deck();
 					return false;
 				}
 				break;
@@ -88,13 +88,13 @@ public class SolitaireWrapper extends Solitaire {
 		// At this part, start this.undo()-ing shit if mistakes start happening
 		switch (destPile) {
 			case 1:
-				this.throwAway((Card) this.hand.pop());
+				this.throwAway(this.hand.pop());
 				return true;
 			case 3:
 			case 4:
 			case 5:
 			case 6:
-				if(this.moveToFoundation((Card) this.hand.peek())) {
+				if(this.moveToFoundation(this.hand.peek())) {
 					// Success
 					this.hand.pop();
 					return true;
@@ -110,7 +110,7 @@ public class SolitaireWrapper extends Solitaire {
 			case 11:
 			case 12:
 			case 13:
-				if(this.moveToTableu((Card) this.hand.peek(), destPile-7)) {
+				if(this.moveToTableu(this.hand.peek(), destPile-7)) {
 					// Success
 					this.hand.pop();
 					return true;

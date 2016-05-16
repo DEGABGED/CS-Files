@@ -8,7 +8,7 @@ package me1.delacruz;
 * @since	2015-03-26
 */
 
-public class LinkedStack {
+public class LinkedStack<T> {
 
 	/**
 	* <h1>Node</h1>
@@ -18,14 +18,14 @@ public class LinkedStack {
 	* @author	Francis Zac dela Cruz
 	* @since	2015-03-26
 	*/
-	private class Node {
-		public Object data;
+	protected class Node {
+		public T data;
 		public Node link;
 		public String toString() { return data.toString(); }
 	}
 
-	private Node top;
-	private int size;
+	protected Node top;
+	protected int size;
 
 	/**
 	* This constructor creates an empty linked stack.
@@ -45,7 +45,7 @@ public class LinkedStack {
 	* Pushes an Object on the top of the stack.
 	* @param x Object to be pushed
 	*/
-	public void push(Object x) {
+	public void push(T x) {
 		Node pushed = new Node();
 		pushed.data = x;
 		pushed.link = top;
@@ -58,7 +58,7 @@ public class LinkedStack {
 	* null if the stack is empty.
 	* @return Object at the top of the stack.
 	*/
-	public Object pop() {
+	public T pop() {
 		if(this.isEmpty()) return null;
 		Node popped = this.top;
 		this.top = this.top.link;
@@ -71,7 +71,7 @@ public class LinkedStack {
 	* Returns null if the stack is empty.
 	* @return Object at the top of the stack.
 	*/
-	public Object peek() {
+	public T peek() {
 		return this.isEmpty() ? null : this.top.data;
 	}
 
@@ -98,7 +98,7 @@ public class LinkedStack {
 	*/
 	public void reverse() {
 		if(this.isEmpty()) return;
-		LinkedStack tmp = new LinkedStack();
+		LinkedStack<T> tmp = new LinkedStack<T>();
 		while(!this.isEmpty()) { tmp.push(this.pop()); }
 		this.top = tmp.top;
 		this.size = tmp.size;
@@ -110,9 +110,9 @@ public class LinkedStack {
 	* Unlike the other reverse function, this one returns a new
 	* stack, while not changing the old one.
 	*/
-	public LinkedStack getReverse() {
+	public LinkedStack<T> getReverse() {
 		if(this.isEmpty()) return null;
-		LinkedStack o = new LinkedStack();
+		LinkedStack<T> o = new LinkedStack<T>();
 		Node ptr = this.top;
 		for(;ptr != null;ptr = ptr.link) o.push(ptr.data);
 		return o;
@@ -130,20 +130,6 @@ public class LinkedStack {
 			output += (ptr == this.top ? "" : "-") + "[" + ptr.data + "]";
 		}
 		output +=  "\n";
-		return output;
-	}
-
-	/**
-	* Converts the LinkedStack to a string for file output. This method only works
-	* for Card piles / LinkedStacks of Cards.
-	* @return String representation of the stack.
-	*/
-	public String toRawString() {
-		if(this.isEmpty()) return "000\n";
-		String output = "";
-		for(Node ptr = this.top; ptr != null; ptr = ptr.link) {
-			output += ((Card) ptr.data).toRawString();
-		}
 		return output;
 	}
 }

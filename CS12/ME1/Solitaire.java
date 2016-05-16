@@ -16,12 +16,12 @@ import java.util.Arrays;
 
 public class Solitaire {
 	protected Card deck[];
-	protected LinkedStack talon;
-	protected LinkedStack foundations[];
-	protected LinkedStack stock;
-	protected LinkedStack tableu[];
-	protected LinkedStack hand;
-	protected LinkedStack moves;
+	protected Deck talon;
+	protected Deck foundations[];
+	protected Deck stock;
+	protected Deck tableu[];
+	protected Deck hand;
+	protected LinkedStack<Move> moves;
 	protected int redealsLeft;
 
 	/**
@@ -30,19 +30,19 @@ public class Solitaire {
 	*/
 	public Solitaire() {
 		this.deck = new Card[52];
-		this.foundations = new LinkedStack[4];
-		this.tableu = new LinkedStack[7];
-		this.talon = new LinkedStack();
-		this.stock = new LinkedStack();
-		this.hand = new LinkedStack();
-		this.moves = new LinkedStack();
+		this.foundations = new Deck[4];
+		this.tableu = new Deck[7];
+		this.talon = new Deck();
+		this.stock = new Deck();
+		this.hand = new Deck();
+		this.moves = new LinkedStack<>();
 		this.redealsLeft = 2;
 
 		for(int x=0; x<4; x++){
-			this.foundations[x] = new LinkedStack();
+			this.foundations[x] = new Deck();
 		}
 		for(int x=0; x<7; x++){
-			this.tableu[x] = new LinkedStack();
+			this.tableu[x] = new Deck();
 		}
 		for(int s=0; s<4; s++){
 			for(int r=1; r<14; r++){
@@ -58,21 +58,21 @@ public class Solitaire {
 	/**
 	* The following accessor methods are for use by the SolitaireIO classes.
 	*/
-	public LinkedStack getTalon() { return this.talon; }
-	public LinkedStack[] getFoundations() { return this.foundations; }
-	public LinkedStack getStock() { return this.stock; }
-	public LinkedStack[] getTableus() { return this.tableu; }
+	public Deck getTalon() { return this.talon; }
+	public Deck[] getFoundations() { return this.foundations; }
+	public Deck getStock() { return this.stock; }
+	public Deck[] getTableus() { return this.tableu; }
 	public int getRedealsLeft() { return this.redealsLeft; }
-	public LinkedStack getHand() { return this.hand; }
-	public LinkedStack getMoves() { return this.moves; }
+	public Deck getHand() { return this.hand; }
+	public LinkedStack<Move> getMoves() { return this.moves; }
 
-	public void setHand(LinkedStack hand) { this.hand = hand; }
+	public void setHand(Deck hand) { this.hand = hand; }
 
 	private int openTableus() {
 		int i = 0;
 		for(; i<7; i++) {
-			if(!this.tableu[i].isEmpty() && !((Card) this.tableu[i].peek()).getFaceUp()) {
-				faceCard((Card) this.tableu[i].peek(), true);
+			if(!this.tableu[i].isEmpty() && !(this.tableu[i].peek()).getFaceUp()) {
+				faceCard(this.tableu[i].peek(), true);
 				this.moves.push(new Move(i+7, i+7, 1));
 				return i;
 			}
@@ -82,8 +82,8 @@ public class Solitaire {
 
 	public void undo() {
 		if (this.moves.isEmpty()) return;
-		Move move = (Move) this.moves.pop();
-		LinkedStack src = new LinkedStack(), dest = new LinkedStack();
+		Move move = this.moves.pop();
+		Deck src = new Deck(), dest = new Deck();
 
 		// Set the src and dest stacks
 		if (move.getSrc() < 0 || move.getSrc() >= 14) return;
@@ -102,13 +102,13 @@ public class Solitaire {
 
 		if (move.getSrc() == move.getDest()) {
 			// Card unflipping
-			faceCard((Card) src.peek(), move.getCount() == 0);
+			faceCard(src.peek(), move.getCount() == 0);
 			return;
 		}
 
 		for(int i=0; i<move.getCount(); i++) {
 			src.push(dest.pop());
-			if(move.getSrc() == 0) faceCard((Card) src.peek(), false);
+			if(move.getSrc() == 0) faceCard(src.peek(), false);
 		}
 		return;
 	}
@@ -162,7 +162,7 @@ public class Solitaire {
 	*/
 	public boolean isWin() {
 		int total = 0;
-		for(LinkedStack x : this.foundations){
+		for(Deck x : this.foundations){
 			total += x.getSize();
 		}
 		return total == 52;
@@ -177,7 +177,7 @@ public class Solitaire {
 		if(this.redealsLeft == 0) return -1;
 		if(this.talon.isEmpty()) return redealsLeft;
 		while(!this.talon.isEmpty()) {
-			this.faceCard((Card) this.talon.peek(), false);
+			this.faceCard(this.talon.peek(), false);
 			this.stock.push(this.talon.pop());
 		}
 		return --redealsLeft;
@@ -197,12 +197,12 @@ public class Solitaire {
 			for(int y=x; y<7; y++){
 				this.tableu[y].push(this.stock.pop());
 				if(y==x){
-					this.faceCard((Card) this.tableu[y].peek(), true);
+					this.faceCard( this.tableu[y].peek(), true);
 				}
 			}
 		}
 
-		//this.faceCard((Card) this.stock.peek(), true);
+		//this.faceCard( this.stock.peek(), true);
 	}
 
 	/**
@@ -224,10 +224,10 @@ public class Solitaire {
 
 		//Print Stock, Talon, and Foundations
 		System.out.println(Constant.STFTOP);
-		System.out.print(String.format(Constant.CARDTEXT, (Card) this.stock.peek() == null ? "   " : (Card) this.stock.peek()) +
-			String.format(Constant.CARDTEXT, (Card) this.talon.peek() == null ? "   " : (Card) this.talon.peek()) + Constant.CARDWIDTH);
-		for(LinkedStack x : this.foundations){
-			System.out.print(String.format(Constant.CARDTEXT, (Card) x.peek() == null ? "   " : (Card) x.peek()));
+		System.out.print(String.format(Constant.CARDTEXT, this.stock.peek() == null ? "   " : this.stock.peek()) +
+			String.format(Constant.CARDTEXT, this.talon.peek() == null ? "   " : this.talon.peek()) + Constant.CARDWIDTH);
+		for(Deck x : this.foundations){
+			System.out.print(String.format(Constant.CARDTEXT, x.peek() == null ? "   " : x.peek()));
 			fndtotal += x.getSize();
 		}
 		System.out.print("\n");
@@ -251,9 +251,9 @@ public class Solitaire {
 		System.out.print("\n");
 
 		//Print Tableus
-		LinkedStack[] tableuRev = new LinkedStack[7];
+		Deck[] tableuRev = new Deck[7];
 		for(b=0; b<7; b++){
-			tableuRev[b] = new LinkedStack();
+			tableuRev[b] = new Deck();
 			while(!tableu[b].isEmpty()) tableuRev[b].push(tableu[b].pop());
 		}
 
@@ -263,7 +263,7 @@ public class Solitaire {
 			for(b=0; b<7; b++){
 				if(!tableuRev[b].isEmpty()){
 					tableu[b].push(tableuRev[b].pop());
-					System.out.print(String.format(Constant.CARDTOPTMPL, (Card) tableu[b].peek()));
+					System.out.print(String.format(Constant.CARDTOPTMPL, tableu[b].peek()));
 					someRemain = true;
 				} else  {
 					System.out.print(Constant.CARDWIDTH);
@@ -277,7 +277,7 @@ public class Solitaire {
 	* Draws a card from the stock and places it in the talon pile.
 	*/
 	public void draw() {
-		Card output = (Card) this.stock.pop();
+		Card output = this.stock.pop();
 		output.setFaceUp(true);
 		this.talon.push(output);
 		this.moves.push(new Move(0, 1, 1));
@@ -296,7 +296,7 @@ public class Solitaire {
 
 		if(this.foundations[pile].isEmpty() && card.getRank() != 1) return false;
 		if(!this.foundations[pile].isEmpty() &&
-			card.getRank() - ((Card) this.foundations[pile].peek()).getRank() != 1) return false;
+			card.getRank() - (this.foundations[pile].peek()).getRank() != 1) return false;
 		this.foundations[pile].push(card);
 
 		this.moves.push(new Move(2, pile+3, 1));
@@ -314,11 +314,11 @@ public class Solitaire {
 	public boolean moveToTableu(Card card, int pile) {
 		if(this.tableu[pile].isEmpty() && card.getRank() != 13) return false;
 		if(!this.tableu[pile].isEmpty()
-			&& ((Card) this.tableu[pile].peek()).getFaceUp()
-			&& !isAlternating(card, (Card) this.tableu[pile].peek())) return false;
+			&& (this.tableu[pile].peek()).getFaceUp()
+			&& !isAlternating(card, this.tableu[pile].peek())) return false;
 		if(!this.tableu[pile].isEmpty() && 
-			((Card) this.tableu[pile].peek()).getFaceUp() &&
-			((Card) this.tableu[pile].peek()).getRank() - card.getRank() != 1) return false;
+			(this.tableu[pile].peek()).getFaceUp() &&
+			(this.tableu[pile].peek()).getRank() - card.getRank() != 1) return false;
 		this.tableu[pile].push(card);
 
 		this.moves.push(new Move(2, pile+7, 1));
@@ -341,7 +341,7 @@ public class Solitaire {
 		}
 		if(this.foundations[s].isEmpty()) return null;
 		this.moves.push(new Move(s+3, 2, 1));
-		return (Card) this.foundations[s].pop();
+		return this.foundations[s].pop();
 	}
 
 	/**
@@ -353,12 +353,12 @@ public class Solitaire {
 	* @param numberOfCards Number of cards to be taken from the pile.
 	* @return Stack of cards taken from the pile, in reverse order.
 	*/
-	public LinkedStack getFromTableu(int pile, int numberOfCards) {
+	public Deck getFromTableu(int pile, int numberOfCards) {
 		if(this.tableu[pile].isEmpty()) return null;
-		LinkedStack output = new LinkedStack();
+		Deck output = new Deck();
 		for(; numberOfCards > 0; numberOfCards--) {
 			if(this.tableu[pile].peek() == null) break;
-			if(!((Card) this.tableu[pile].peek()).getFaceUp()) break;
+			if(!(this.tableu[pile].peek()).getFaceUp()) break;
 			output.push(this.tableu[pile].pop());
 			if(this.tableu[pile].isEmpty()) break;
 		}
@@ -373,7 +373,7 @@ public class Solitaire {
 	*/
 	public Card getFromTalon() {
 		this.moves.push(new Move(1, 2, 1));
-		return (Card) this.talon.pop();
+		return this.talon.pop();
 	}
 
 	/**
@@ -389,10 +389,10 @@ public class Solitaire {
 			FileWriter file = new FileWriter(f);
 			file.write(this.stock.toRawString());
 			file.write("0\n" + this.talon.toRawString());
-			for(LinkedStack x : this.foundations){
+			for(Deck x : this.foundations){
 				file.write("0\n" + x.toRawString());
 			}
-			for(LinkedStack x : this.tableu){
+			for(Deck x : this.tableu){
 				file.write("0\n" + x.toRawString());
 			}
 			file.write("0\n");
@@ -442,7 +442,7 @@ public class Solitaire {
 			x++;
 
 			// Foundations
-			for(LinkedStack ls : this.foundations) {
+			for(Deck ls : this.foundations) {
 				ls.clear();
 				for(; x<tokens.length; x++) {
 					if(tokens[x].equals("000")) x++;
@@ -454,7 +454,7 @@ public class Solitaire {
 			}
 
 			// Tableus
-			for(LinkedStack ls : this.tableu) {
+			for(Deck ls : this.tableu) {
 				ls.clear();
 				for(; x<tokens.length; x++) {
 					if(tokens[x].equals("000")) x++;

@@ -20,10 +20,10 @@ public class GUITemplate extends JPanel {
 	private static int marginY = 25;
 
 	private Solitaire game;
-	private LinkedStack stockPrint;
-	private LinkedStack talonPrint;
-	private LinkedStack[] foundationsPrint;
-	private LinkedStack[] tableusPrint;
+	private Deck stockPrint;
+	private Deck talonPrint;
+	private Deck[] foundationsPrint;
+	private Deck[] tableusPrint;
 	private int clickedPile;
 	
 	public GUITemplate(Solitaire game, MouseListener listener) {
@@ -54,11 +54,11 @@ public class GUITemplate extends JPanel {
 		// Get the list of cards to print, and in what order
 		stockPrint = game.getStock();
 		talonPrint = game.getTalon();
-		foundationsPrint = new LinkedStack[4];
+		foundationsPrint = new Deck[4];
 		for(int c = 0; c < 4; c++) {
 			foundationsPrint[c] = game.getFoundations()[c];
 		}
-		tableusPrint = new LinkedStack[7];
+		tableusPrint = new Deck[7];
 		for(int c = 0; c < 7; c++) {
 			tableusPrint[c] = game.getTableus()[c].getReverse();
 		}
@@ -77,7 +77,7 @@ public class GUITemplate extends JPanel {
 
 		//Print the stock and talon
 		if(stockPrint!=null && !stockPrint.isEmpty()) {
-			g.drawImage(getCardImage((Card) stockPrint.peek())
+			g.drawImage(getCardImage(stockPrint.peek())
 			, marginX, marginY, cardWidth, cardHeight, null);
 		} else {
 			g.drawRect(marginX, marginY, cardWidth, cardHeight);
@@ -85,7 +85,7 @@ public class GUITemplate extends JPanel {
 
 		int cmxcw = cardMarginX + cardWidth;
 		if(talonPrint!=null && !talonPrint.isEmpty()) {
-			g.drawImage(getCardImage((Card) talonPrint.peek())
+			g.drawImage(getCardImage(talonPrint.peek())
 			, marginX+cmxcw, marginY, cardWidth, cardHeight, null);
 		} else {
 			g.drawRect(marginX+(cmxcw), marginY, cardWidth, cardHeight);
@@ -94,7 +94,7 @@ public class GUITemplate extends JPanel {
 		//Print the foundations
 		for(int c = 0; c<4; c++) {
 			if(foundationsPrint[c]!=null && !foundationsPrint[c].isEmpty()) {
-				g.drawImage(getCardImage((Card) foundationsPrint[c].peek())
+				g.drawImage(getCardImage(foundationsPrint[c].peek())
 				, marginX+(cmxcw)*(c+3), marginY, cardWidth, cardHeight, null);
 			} else {
 				g.drawRect(marginX+(cmxcw)*(c+3), marginY, cardWidth, cardHeight);
@@ -108,7 +108,7 @@ public class GUITemplate extends JPanel {
 			t=0;
 			if(tableusPrint[c]!=null) {
 				while(!tableusPrint[c].isEmpty()) {
-					g.drawImage(getCardImage((Card) tableusPrint[c].pop())
+					g.drawImage(getCardImage(tableusPrint[c].pop())
 					, marginX+(cmxcw)*c, mychcmy+(t*cardSliver), cardWidth, cardHeight, null);
 					t++;
 				}

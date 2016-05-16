@@ -50,10 +50,10 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 
 		//Print Stock, Talon, and Foundations
 		System.out.println(Constant.STFTOP);
-		System.out.print(String.format(Constant.CARDTEXT, (Card) this.game.getStock().peek() == null ? "   " : (Card) this.game.getStock().peek()) +
-			String.format(Constant.CARDTEXT, (Card) this.game.getTalon().peek() == null ? "   " : (Card) this.game.getTalon().peek()) + Constant.CARDWIDTH);
-		for(LinkedStack x : this.game.getFoundations()){
-			System.out.print(String.format(Constant.CARDTEXT, (Card) x.peek() == null ? "   " : (Card) x.peek()));
+		System.out.print(String.format(Constant.CARDTEXT, this.game.getStock().peek() == null ? "   " : this.game.getStock().peek()) +
+			String.format(Constant.CARDTEXT, this.game.getTalon().peek() == null ? "   " : this.game.getTalon().peek()) + Constant.CARDWIDTH);
+		for(Deck x : this.game.getFoundations()){
+			System.out.print(String.format(Constant.CARDTEXT, x.peek() == null ? "   " : x.peek()));
 			fndtotal += x.getSize();
 		}
 		System.out.print("\n");
@@ -77,9 +77,9 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 		System.out.print("\n");
 
 		//Print Tableus
-		LinkedStack[] tableuRev = new LinkedStack[7];
+		Deck[] tableuRev = new Deck[7];
 		for(b=0; b<7; b++){
-			tableuRev[b] = new LinkedStack();
+			tableuRev[b] = new Deck();
 			while(!this.game.getTableus()[b].isEmpty()) tableuRev[b].push(this.game.getTableus()[b].pop());
 		}
 
@@ -89,7 +89,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			for(b=0; b<7; b++){
 				if(!tableuRev[b].isEmpty()){
 					this.game.getTableus()[b].push(tableuRev[b].pop());
-					System.out.print(String.format(Constant.CARDTOPTMPL, (Card) this.game.getTableus()[b].peek()));
+					System.out.print(String.format(Constant.CARDTOPTMPL, this.game.getTableus()[b].peek()));
 					someRemain = true;
 				} else  {
 					System.out.print(Constant.CARDWIDTH);
@@ -182,7 +182,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 						break;
 					}
 					if(!game.getHand().isEmpty()) {
-						if(!game.moveToFoundation((Card) game.getHand().peek())){
+						if(!game.moveToFoundation(game.getHand().peek())){
 							error = 3;
 							break;
 						}
@@ -197,7 +197,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 						break;
 					}
 					while(!game.getHand().isEmpty()) {
-						if(!game.moveToTableu((Card) game.getHand().peek(), pilenumber - 1)){
+						if(!game.moveToTableu(game.getHand().peek(), pilenumber - 1)){
 							error = 4;
 							break;
 						}
@@ -205,7 +205,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 					}
 					break;
 				case 7: //Throw away a card
-					while(!game.getHand().isEmpty()) game.throwAway((Card) game.getHand().pop());
+					while(!game.getHand().isEmpty()) game.throwAway(game.getHand().pop());
 					break;
 				case 8: //Redeal
 					if(game.redeal() == -1) {
@@ -252,7 +252,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			if(game.getHand() == null || (!game.getHand().isEmpty() && game.getHand().peek() == null)) {
 				System.out.println("Hand is / has null");
 				error = 5;
-				game.setHand(new LinkedStack());
+				game.setHand(new Deck());
 			}
 			flush();
 			// Check for and display errors

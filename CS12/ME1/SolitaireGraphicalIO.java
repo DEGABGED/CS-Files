@@ -23,13 +23,13 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 	private JMenuItem redeal;
 
 	private SolitaireWrapper game;
-	private LinkedStack move;
+	private LinkedStack<Integer> move;
 	private int clickedPile;
 
 	public SolitaireGraphicalIO() {
 		// For the game itself
 		this.game = new SolitaireWrapper();
-		this.move = new LinkedStack();
+		this.move = new LinkedStack<>();
 		this.clickedPile = -1;
 
 		// For the frame and template / view
@@ -203,7 +203,7 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 				}
 			} else {
 				int[] moves = new int[4];
-				for(int i=3; i>=0; i--) moves[i] = ((Integer) move.pop()).intValue();
+				for(int i=3; i>=0; i--) moves[i] = (move.pop()).intValue();
 				System.out.println("Processing pile " + moves[0] + " cndx " + moves[1] + " -> pile " + moves[2] + " cndx " + moves[3]);
 				moves[1]++; // convert card num index to card num
 				if (moves[1] < 2) {
