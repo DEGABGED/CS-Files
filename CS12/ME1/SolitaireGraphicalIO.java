@@ -18,6 +18,9 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 	private JMenuItem savegame;
 	private JMenuItem loadgame;
 	private JMenuItem exitgame;
+	private JMenu gameactions;
+	private JMenuItem undo;
+	private JMenuItem redeal;
 
 	private SolitaireWrapper game;
 	private LinkedStack move;
@@ -60,14 +63,25 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 		exitgame = new JMenuItem("Exit");
 		exitgame.setActionCommand("Exit");
 		exitgame.addActionListener(this);
+		gameactions = new JMenu("Game Actions");
+		undo = new JMenuItem("Undo");
+		undo.setActionCommand("Undo");
+		undo.addActionListener(this);
+		redeal = new JMenuItem("Redeal");
+		redeal.setActionCommand("Redeal");
+		redeal.addActionListener(this);
 
 		options.add(newgame);
 		options.add(savegame);
 		options.add(loadgame);
 		options.add(exitgame);
+		gameactions.add(undo);
+		gameactions.add(redeal);
 		menuBar.add(options);
+		menuBar.add(gameactions);
 		frame.setJMenuBar(menuBar);
 
+		frame.setResizable(false);
 		frame.add(canvas, BorderLayout.CENTER);
 		frame.pack();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -97,7 +111,16 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 			case "Exit":
 				frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 				break;
+			case "Undo":
+				// Undo handler
+				break;
+			case "Redeal":
+				if (this.game.redeal() < 0) {
+					JOptionPane.showMessageDialog(null, "You're out of redeals!", "Move error", JOptionPane.ERROR_MESSAGE);
+				}
+				break;
 		}
+		printGameState();
 	}
 
 	public void mouseEntered(MouseEvent e) {
@@ -118,10 +141,14 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 
 	public void printGameState() {
 		// reprint game status
-		String statusLabel = "  Status: ";
-		statusLabel += "Redeals > " + this.game.getRedealsLeft();
-		statusLabel += ", Stock left > " + this.game.getStock().getSize();
-		status.setText(statusLabel);
+		if (this.game.isWin()) {
+			status.setText(" YOU WIN! ");
+		} else {
+			String statusLabel = "  Status: ";
+			statusLabel += "Redeals > " + this.game.getRedealsLeft();
+			statusLabel += ", Stock left > " + this.game.getStock().getSize();
+			status.setText(statusLabel);
+		}
 		// repainting
 		this.canvas.updateView(this.game, this.clickedPile);
 	}
@@ -158,8 +185,8 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 		// if(output) {
 			printGameState();
 		// }
-		System.out.println(this.game.getMoves());
-		System.out.println(this.game.getHand());
+		// System.out.println(this.game.getMoves());
+		// System.out.println(this.game.getHand());
 		return output;
 	}
 

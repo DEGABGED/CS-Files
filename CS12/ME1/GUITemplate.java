@@ -1,12 +1,13 @@
 package me1.delacruz;
 
 import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.io.*;
-import javax.imageio.*;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
 
-public class GUITemplate extends Canvas {
+public class GUITemplate extends JPanel {
 	private BufferedImage img;
 	private static int width = 600;
 	private static int height = 610;
@@ -26,29 +27,30 @@ public class GUITemplate extends Canvas {
 	private int clickedPile;
 	
 	public GUITemplate(Solitaire game, MouseListener listener) {
-		setSize(width, height);
+		setPreferredSize(new Dimension(width, height));
 		this.game = game;
 		this.addMouseListener(listener);
 		this.clickedPile = -1; // A pile has not yet been clicked
-		this.setPiles();
 	}
 
 	private int row2PositionsX(int x) { return marginX+(cardMarginX+cardWidth)*x; }
 	private int row2PositionsY(int y) { return marginY+cardHeight+cardMarginY+(y*cardSliver); }
 
 	/**
-	 * This method takes the shit from the controller that it needs to live.
+	 * This method sets the game object and clicked pile, then repaints the
+	 * JPanel.
+	 * @param game The game object.
+	 * @param clickedPile The clicked pile; for drawing the pile indicator.
 	 */
 	public void updateView(Solitaire game, int clickedPile) {
 		// Set the clicked pile and game
 		this.game = game;
 		this.clickedPile = clickedPile;
 
-		this.setPiles();
 		this.repaint();
 	}
 
-	public void setPiles() {
+	public boolean setPiles() {
 		// Get the list of cards to print, and in what order
 		stockPrint = game.getStock();
 		talonPrint = game.getTalon();
@@ -60,16 +62,18 @@ public class GUITemplate extends Canvas {
 		for(int c = 0; c < 7; c++) {
 			tableusPrint[c] = game.getTableus()[c].getReverse();
 		}
-		System.out.println(stockPrint);
+		return true;
 	}
 
 	// The printGameState function in SGUIO will parse the card piles and pass them here
-	public void paint(Graphics ga) {
+	public void paintComponent(Graphics ga) {
 		int x = 0, y = 0;
 		Graphics2D g = (Graphics2D) ga;
 		g.setColor(new Color(0x00bb44)); //greeeen
 		g.fillRect(0, 0, width, height);
 		g.setColor(Color.BLACK);
+
+		this.setPiles();
 
 		//Print the stock and talon
 		if(stockPrint!=null && !stockPrint.isEmpty()) {
@@ -79,40 +83,41 @@ public class GUITemplate extends Canvas {
 			g.drawRect(marginX, marginY, cardWidth, cardHeight);
 		}
 
+		int cmxcw = cardMarginX + cardWidth;
 		if(talonPrint!=null && !talonPrint.isEmpty()) {
 			g.drawImage(getCardImage((Card) talonPrint.peek())
-			, marginX+cardMarginX+cardWidth, marginY, cardWidth, cardHeight, null);
+			, marginX+cmxcw, marginY, cardWidth, cardHeight, null);
 		} else {
-			g.drawRect(marginX+(cardMarginX+cardWidth), marginY, cardWidth, cardHeight);
+			g.drawRect(marginX+(cmxcw), marginY, cardWidth, cardHeight);
 		}
 
 		//Print the foundations
 		for(int c = 0; c<4; c++) {
 			if(foundationsPrint[c]!=null && !foundationsPrint[c].isEmpty()) {
 				g.drawImage(getCardImage((Card) foundationsPrint[c].peek())
-				, marginX+(cardMarginX+cardWidth)*(c+3), marginY, cardWidth, cardHeight, null);
+				, marginX+(cmxcw)*(c+3), marginY, cardWidth, cardHeight, null);
 			} else {
-				g.drawRect(marginX+(cardMarginX+cardWidth)*(c+3), marginY, cardWidth, cardHeight);
+				g.drawRect(marginX+(cmxcw)*(c+3), marginY, cardWidth, cardHeight);
 			}
 		}
 
 		//Print the tableus
+		int mychcmy = marginY+cardHeight+cardMarginY;
 		int t = 0;
 		for(int c = 0; c<7; c++) {
 			t=0;
 			if(tableusPrint[c]!=null) {
 				while(!tableusPrint[c].isEmpty()) {
 					g.drawImage(getCardImage((Card) tableusPrint[c].pop())
-					, marginX+(cardMarginX+cardWidth)*c, marginY+cardHeight+cardMarginY+(t*cardSliver), cardWidth, cardHeight, null);
+					, marginX+(cmxcw)*c, mychcmy+(t*cardSliver), cardWidth, cardHeight, null);
 					t++;
 				}
 			} else {
-				g.drawRect(marginX+(cardMarginX+cardWidth)*c, marginY+cardHeight+cardMarginY+(y*cardSliver), cardWidth, cardHeight);
+				g.drawRect(marginX+(cmxcw)*c, mychcmy+(y*cardSliver), cardWidth, cardHeight);
 			}
 		}
 
 		//Print the pile indicator
-		System.out.println("clicked " + this.clickedPile);
 		if (this.clickedPile >= 0 && this.clickedPile < 7 && this.clickedPile != 2) {
 			// Point up
 			int triBaseX = marginX + (cardWidth + cardMarginX)*(clickedPile) + 30;
