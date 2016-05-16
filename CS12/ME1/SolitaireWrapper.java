@@ -123,4 +123,17 @@ public class SolitaireWrapper extends Solitaire {
 				return false;
 		}
 	}
+
+	/*
+	 * This method will undo certain groups of undo moves.
+	 */
+	public void undoGroup() {
+		if (this.moves.isEmpty()) return;
+		int lastMove = this.moves.peek().getIndex();
+		System.out.println("SW lastMove: " + lastMove);
+		while(!this.moves.isEmpty() && this.moves.peek().getIndex() == lastMove) {
+			this.undo();
+		}
+		this.moveCount++;
+	}
 }

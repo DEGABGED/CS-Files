@@ -113,6 +113,7 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 				break;
 			case "Undo":
 				// Undo handler
+				this.game.undoGroup();
 				break;
 			case "Redeal":
 				if (this.game.redeal() < 0) {
@@ -147,6 +148,7 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 			String statusLabel = "  Status: ";
 			statusLabel += "Redeals > " + this.game.getRedealsLeft();
 			statusLabel += ", Stock left > " + this.game.getStock().getSize();
+			statusLabel += ", Moves > " + this.game.getMoveCount();
 			status.setText(statusLabel);
 		}
 		// repainting

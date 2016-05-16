@@ -23,6 +23,7 @@ public class Solitaire {
 	protected Deck hand;
 	protected LinkedStack<Move> moves;
 	protected int redealsLeft;
+	protected int moveCount;
 
 	/**
 	* This constructor initializes the foundations and tableus, shuffles the deck,
@@ -37,6 +38,7 @@ public class Solitaire {
 		this.hand = new Deck();
 		this.moves = new LinkedStack<>();
 		this.redealsLeft = 2;
+		this.moveCount = 0;
 
 		for(int x=0; x<4; x++){
 			this.foundations[x] = new Deck();
@@ -67,13 +69,14 @@ public class Solitaire {
 	public LinkedStack<Move> getMoves() { return this.moves; }
 
 	public void setHand(Deck hand) { this.hand = hand; }
+	public int getMoveCount() { return this.moveCount; }
 
 	private int openTableus() {
 		int i = 0;
 		for(; i<7; i++) {
 			if(!this.tableu[i].isEmpty() && !(this.tableu[i].peek()).getFaceUp()) {
 				faceCard(this.tableu[i].peek(), true);
-				this.moves.push(new Move(i+7, i+7, 1));
+				this.moves.push(new Move(i+7, i+7, 1, moveCount));
 				return i;
 			}
 		}
@@ -87,14 +90,15 @@ public class Solitaire {
 
 		// Set the src and dest stacks
 		if (move.getSrc() < 0 || move.getSrc() >= 14) return;
-		else if (move.getSrc() == 0) src = this.stock;
+		if (move.getDest() < 0 || move.getDest() >= 14) return;
+
+		if (move.getSrc() == 0) src = this.stock;
 		else if (move.getSrc() == 1) src = this.talon;
 		else if (move.getSrc() == 2) src = this.hand;
 		else if (move.getSrc() < 7) src = this.foundations[move.getSrc() - 3];
 		else src = this.tableu[move.getSrc() - 7];
 
-		if (move.getDest() < 0 || move.getDest() >= 14) return;
-		else if (move.getDest() == 0) dest = this.stock;
+		if (move.getDest() == 0) dest = this.stock;
 		else if (move.getDest() == 1) dest = this.talon;
 		else if (move.getDest() == 2) dest = this.hand;
 		else if (move.getDest() < 7) dest = this.foundations[move.getDest() - 3];
@@ -110,6 +114,9 @@ public class Solitaire {
 			src.push(dest.pop());
 			if(move.getSrc() == 0) faceCard(src.peek(), false);
 		}
+
+		if (this.moves.isEmpty()) this.moveCount = -1;
+		else this.moveCount = this.moves.peek().getIndex();
 		return;
 	}
 
@@ -150,7 +157,8 @@ public class Solitaire {
 	*/
 	public void throwAway(Card card) {
 		if(card != null) this.talon.push(card);
-		this.moves.push(new Move(2,1,1));
+		this.moves.push(new Move(2,1,1, moveCount));
+		if (this.hand.isEmpty()) moveCount++;
 
 		// Set the tableus
 		this.openTableus();
@@ -176,6 +184,8 @@ public class Solitaire {
 	public int redeal() {
 		if(this.redealsLeft == 0) return -1;
 		if(this.talon.isEmpty()) return redealsLeft;
+		this.moves.push(new Move(1,0,this.talon.getSize(), moveCount));
+		moveCount++;
 		while(!this.talon.isEmpty()) {
 			this.faceCard(this.talon.peek(), false);
 			this.stock.push(this.talon.pop());
@@ -280,7 +290,8 @@ public class Solitaire {
 		Card output = this.stock.pop();
 		output.setFaceUp(true);
 		this.talon.push(output);
-		this.moves.push(new Move(0, 1, 1));
+		this.moves.push(new Move(0, 1, 1, moveCount));
+		moveCount++;
 	}
 
 	/**
@@ -299,10 +310,11 @@ public class Solitaire {
 			card.getRank() - (this.foundations[pile].peek()).getRank() != 1) return false;
 		this.foundations[pile].push(card);
 
-		this.moves.push(new Move(2, pile+3, 1));
+		this.moves.push(new Move(2, pile+3, 1, moveCount));
 
 		// Set the tableus
 		this.openTableus();
+		if (this.hand.getSize() == 1) moveCount++;
 		return true;
 	}
 
@@ -321,10 +333,11 @@ public class Solitaire {
 			(this.tableu[pile].peek()).getRank() - card.getRank() != 1) return false;
 		this.tableu[pile].push(card);
 
-		this.moves.push(new Move(2, pile+7, 1));
+		this.moves.push(new Move(2, pile+7, 1, moveCount));
 
 		// Set the tableus
 		this.openTableus();
+		if (this.hand.getSize() == 1) moveCount++;
 		return true;
 	}
 
@@ -340,7 +353,7 @@ public class Solitaire {
 			if(Constant.SUITS[s] == suit) break;
 		}
 		if(this.foundations[s].isEmpty()) return null;
-		this.moves.push(new Move(s+3, 2, 1));
+		this.moves.push(new Move(s+3, 2, 1, moveCount));
 		return this.foundations[s].pop();
 	}
 
@@ -363,7 +376,7 @@ public class Solitaire {
 			if(this.tableu[pile].isEmpty()) break;
 		}
 		//if(!this.tableu[pile].isEmpty()) this.faceCard((Card) this.tableu[pile].peek(), true);
-		this.moves.push(new Move(pile+7, 2, output.getSize()));
+		this.moves.push(new Move(pile+7, 2, output.getSize(), moveCount));
 		return output;
 	}
 
@@ -372,7 +385,7 @@ public class Solitaire {
 	* @return Card drawn from the talon.
 	*/
 	public Card getFromTalon() {
-		this.moves.push(new Move(1, 2, 1));
+		this.moves.push(new Move(1, 2, 1, moveCount));
 		return this.talon.pop();
 	}
 

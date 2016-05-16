@@ -34,14 +34,6 @@ public class Card {
 	public Card(String input) {
 		String[] args = input.split("\t");
 		this.rank = Integer.parseInt(args[0]);
-		/*
-		switch(args[1].charAt(0)){
-			case 'S': this.suit = Constant.SUITS[0]; break;
-			case 'H': this.suit = Constant.SUITS[1]; break;
-			case 'D': this.suit = Constant.SUITS[2]; break;
-			case 'C': this.suit = Constant.SUITS[3]; break;
-		}
-		*/
 		this.suit = Constant.SUITS[Integer.parseInt(args[1])];
 		this.faceUp = args[2].equals("1");
 	}

@@ -70,7 +70,8 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			String.format(Constant.CARDMARGIN, Constant.CLBS));
 		System.out.println(" Redeals left: " + this.game.getRedealsLeft() +
 			", Stock: " + this.game.getStock().getSize() +
-			", Foundations: " + fndtotal + "\n");
+			", Foundations: " + fndtotal + "");
+		System.out.println(" Moves: " + this.game.getMoveCount() + "\n");
 		for(int x=1; x<8; x++){
 			System.out.print(String.format(Constant.CARDMARGIN, x));
 		}
@@ -98,8 +99,8 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			System.out.print("\n");
 		}
 
-		System.out.println("MoveStack:");
-		System.out.println(this.game.getMoves());
+		// System.out.println("MoveStack:");
+		// System.out.println(this.game.getMoves());
 	}
 
 	public boolean getGameInput(Object o) { //returns false only if quit is chosen
