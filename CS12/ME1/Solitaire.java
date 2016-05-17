@@ -226,65 +226,6 @@ public class Solitaire {
 	}
 
 	/**
-	* Prints the stock, talon, foundations, tableus, and redeals left. Uses Unicode
-	* characters.
-	*/
-	public void printGameState() {
-		int b = 0;
-		int fndtotal = 0;
-
-		//Print Stock, Talon, and Foundations
-		System.out.println(Constant.STFTOP);
-		System.out.print(String.format(Constant.CARDTEXT, this.stock.peek() == null ? "   " : this.stock.peek()) +
-			String.format(Constant.CARDTEXT, this.talon.peek() == null ? "   " : this.talon.peek()) + Constant.CARDWIDTH);
-		for(Deck x : this.foundations){
-			System.out.print(String.format(Constant.CARDTEXT, x.peek() == null ? "   " : x.peek()));
-			fndtotal += x.getSize();
-		}
-		System.out.print("\n");
-		for(b=0; b<3; b++){
-			System.out.println(Constant.STFBODY);
-		}
-		System.out.println(Constant.STFBOTTOM);
-
-		//Print Labels
-		System.out.println(" Stock  Talon " + Constant.CARDWIDTH +
-			String.format(Constant.CARDMARGIN, Constant.SPDS) +
-			String.format(Constant.CARDMARGIN, Constant.HRTS) +
-			String.format(Constant.CARDMARGIN, Constant.DMND) +
-			String.format(Constant.CARDMARGIN, Constant.CLBS));
-		System.out.println(" Redeals left: " + this.redealsLeft +
-			", Stock: " + this.stock.getSize() +
-			", Foundations: " + fndtotal + "\n");
-		for(int x=1; x<8; x++){
-			System.out.print(String.format(Constant.CARDMARGIN, x));
-		}
-		System.out.print("\n");
-
-		//Print Tableus
-		Deck[] tableuRev = new Deck[7];
-		for(b=0; b<7; b++){
-			tableuRev[b] = new Deck();
-			while(!tableu[b].isEmpty()) tableuRev[b].push(tableu[b].pop());
-		}
-
-		boolean someRemain = true;
-		while(someRemain){
-			someRemain = false;
-			for(b=0; b<7; b++){
-				if(!tableuRev[b].isEmpty()){
-					tableu[b].push(tableuRev[b].pop());
-					System.out.print(String.format(Constant.CARDTOPTMPL, tableu[b].peek()));
-					someRemain = true;
-				} else  {
-					System.out.print(Constant.CARDWIDTH);
-				}
-			}
-			System.out.print("\n");
-		}
-	}
-
-	/**
 	* Draws a card from the stock and places it in the talon pile.
 	*/
 	public void draw() {

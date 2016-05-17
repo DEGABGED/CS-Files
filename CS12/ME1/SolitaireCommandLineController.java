@@ -2,7 +2,7 @@ package me1.delacruz;
 
 import java.util.Scanner;
 
-public class SolitaireCommandLineIO implements SolitaireIO {
+public class SolitaireCommandLineController implements SolitaireController {
 	private Solitaire game;
 	private SolitaireView view;
 	private int error;
@@ -11,7 +11,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 	private int pilenumber;
 	private String dmp;
 
-	public SolitaireCommandLineIO() {
+	public SolitaireCommandLineController() {
 		this.game = new Solitaire();
 		this.view = new SolitaireCommandLineView();
 		this.error = 0;

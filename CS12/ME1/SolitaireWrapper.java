@@ -27,7 +27,6 @@ public class SolitaireWrapper extends Solitaire {
 		for (; i<amount; i++) {
 			if (this.hand.isEmpty()) break;
 			if (!this.moveToTableu((this.hand.peek()), destPile-7)) {
-				System.out.println("wopps "+i);
 				// Undo
 				while (i >= 0) {
 					if (i == 1) this.undo(); // Tableu opening
@@ -130,7 +129,6 @@ public class SolitaireWrapper extends Solitaire {
 	public void undoGroup() {
 		if (this.moves.isEmpty()) return;
 		int lastMove = this.moves.peek().getIndex();
-		System.out.println("SW lastMove: " + lastMove);
 		while(!this.moves.isEmpty() && this.moves.peek().getIndex() == lastMove) {
 			this.undo();
 		}

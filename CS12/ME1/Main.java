@@ -19,10 +19,10 @@ public class Main {
 	*/
 	public static void main(String[] args) {
 		if (args.length > 0 && args[0].equals("-no-gui")) {
-			SolitaireIO game = new SolitaireCommandLineIO();
+			SolitaireController game = new SolitaireCommandLineController();
 			while(game.getGameInput(null)) {}
 		} else {
-			SolitaireIO game = new SolitaireGraphicalIO();
+			SolitaireController game = new SolitaireGraphicalController();
 		}
 	}
 }

@@ -6,8 +6,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
 
-public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionListener {
-	private GUITemplate canvas;
+public class SolitaireGraphicalController implements SolitaireController, MouseListener, ActionListener {
+	private SolitaireGraphicalView canvas;
 	private JFrame frame;
 	private JPanel statusBar;
 	private JLabel status;
@@ -26,7 +26,7 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 	private LinkedStack<Integer> move;
 	private int clickedPile;
 
-	public SolitaireGraphicalIO() {
+	public SolitaireGraphicalController() {
 		// For the game itself
 		this.game = new SolitaireWrapper();
 		this.move = new LinkedStack<>();
@@ -34,7 +34,7 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 
 		// For the frame and template / view
 		frame = new JFrame();
-		canvas = new GUITemplate(this.game, this);
+		canvas = new SolitaireGraphicalView(this.game, this);
 		frame.setLayout(new BorderLayout());
 		frame.setTitle("Solitaire (Klondlike)");
 
@@ -159,14 +159,13 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 	public boolean getGameInput(Object o) {
 		MouseEvent e = (MouseEvent) o;
 		int x = e.getX(), y = e.getY();
-		int[] cardPos = GUITemplate.getChosenPile(x,y); // A y value of 0 means 'top of the pile'
+		int[] cardPos = SolitaireGraphicalView.getChosenPile(x,y); // A y value of 0 means 'top of the pile'
 		// Set the cardPos[1] for tableus such that the top card is card 0
 		if(cardPos[0] >= 7 && cardPos[0] < 14) {
 			cardPos[1] = game.getTableus()[cardPos[0] - 7].getSize() - cardPos[1] - 1;
 		}
 		if(cardPos[1] < 0 && cardPos[1] > -5) cardPos[1] = 0;
 
-		System.out.println("" + cardPos[0] + " and " + cardPos[1]);
 		if (cardPos[0] < 0 || cardPos[1] < 0) {
 			move.clear();
 			this.clickedPile = -1;
@@ -203,7 +202,6 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 					this.game.draw();
 				}
 			} else {
-				System.out.println("Processing pile " + input[0] + " cndx " + input[1] + " -> pile " + input[2] + " cndx " + input[3]);
 				input[1]++; // convert card num index to card num
 				if (input[1] < 2) {
 					// Single card
