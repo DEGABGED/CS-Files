@@ -7,7 +7,7 @@ import java.io.File;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-public class GUITemplate extends JPanel {
+public class GUITemplate extends JPanel implements SolitaireView {
 	private BufferedImage img;
 	private static int width = 600;
 	private static int height = 610;
@@ -42,10 +42,11 @@ public class GUITemplate extends JPanel {
 	 * @param game The game object.
 	 * @param clickedPile The clicked pile; for drawing the pile indicator.
 	 */
-	public void updateView(Solitaire game, int clickedPile) {
+	public void updateView(Solitaire game, int[] args) {
 		// Set the clicked pile and game
+		if (args.length != 1) return;
 		this.game = game;
-		this.clickedPile = clickedPile;
+		this.clickedPile = args[0];
 
 		this.repaint();
 	}
@@ -147,11 +148,6 @@ public class GUITemplate extends JPanel {
 			System.out.println("Tableus");
 			output[0] += 7;
 			y -= (marginY+cardMarginY+cardHeight);
-			/* Code changed because of problems with static references
-			if(output[0] >= 7 && output[0] < 14) {
-				output[1] = tableusPrint[output[0] - 7].getSize() - (y / cardSliver) - 1;
-			}
-			*/
 			if(output[0] >= 7 && output[0] < 14) {
 				output[1] = (y / cardSliver);
 			} else {

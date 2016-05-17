@@ -3,7 +3,8 @@ package me1.delacruz;
 import java.util.Scanner;
 
 public class SolitaireCommandLineIO implements SolitaireIO {
-	private SolitaireWrapper game;
+	private Solitaire game;
+	private SolitaireView view;
 	private int error;
 	private Scanner sc;
 	private int ch;
@@ -11,7 +12,8 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 	private String dmp;
 
 	public SolitaireCommandLineIO() {
-		this.game = new SolitaireWrapper();
+		this.game = new Solitaire();
+		this.view = new SolitaireCommandLineView();
 		this.error = 0;
 		this.sc = new Scanner(System.in);
 		this.ch = 0;
@@ -45,62 +47,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 	}
 
 	public void printGameState() {
-		int b = 0;
-		int fndtotal = 0;
-
-		//Print Stock, Talon, and Foundations
-		System.out.println(Constant.STFTOP);
-		System.out.print(String.format(Constant.CARDTEXT, this.game.getStock().peek() == null ? "   " : this.game.getStock().peek()) +
-			String.format(Constant.CARDTEXT, this.game.getTalon().peek() == null ? "   " : this.game.getTalon().peek()) + Constant.CARDWIDTH);
-		for(Deck x : this.game.getFoundations()){
-			System.out.print(String.format(Constant.CARDTEXT, x.peek() == null ? "   " : x.peek()));
-			fndtotal += x.getSize();
-		}
-		System.out.print("\n");
-		for(b=0; b<3; b++){
-			System.out.println(Constant.STFBODY);
-		}
-		System.out.println(Constant.STFBOTTOM);
-
-		//Print Labels
-		System.out.println(" Stock  Talon " + Constant.CARDWIDTH +
-			String.format(Constant.CARDMARGIN, Constant.SPDS) +
-			String.format(Constant.CARDMARGIN, Constant.HRTS) +
-			String.format(Constant.CARDMARGIN, Constant.DMND) +
-			String.format(Constant.CARDMARGIN, Constant.CLBS));
-		System.out.println(" Redeals left: " + this.game.getRedealsLeft() +
-			", Stock: " + this.game.getStock().getSize() +
-			", Foundations: " + fndtotal + "");
-		System.out.println(" Moves: " + this.game.getMoveCount() + "\n");
-		for(int x=1; x<8; x++){
-			System.out.print(String.format(Constant.CARDMARGIN, x));
-		}
-		System.out.print("\n");
-
-		//Print Tableus
-		Deck[] tableuRev = new Deck[7];
-		for(b=0; b<7; b++){
-			tableuRev[b] = new Deck();
-			while(!this.game.getTableus()[b].isEmpty()) tableuRev[b].push(this.game.getTableus()[b].pop());
-		}
-
-		boolean someRemain = true;
-		while(someRemain){
-			someRemain = false;
-			for(b=0; b<7; b++){
-				if(!tableuRev[b].isEmpty()){
-					this.game.getTableus()[b].push(tableuRev[b].pop());
-					System.out.print(String.format(Constant.CARDTOPTMPL, this.game.getTableus()[b].peek()));
-					someRemain = true;
-				} else  {
-					System.out.print(Constant.CARDWIDTH);
-				}
-			}
-			System.out.print("\n");
-		}
-
-		// System.out.println("MoveStack:");
-		// System.out.println(this.game.getMoves());
+		this.view.updateView(this.game, new int[1]);
 	}
 
 	public boolean getGameInput(Object o) { //returns false only if quit is chosen
@@ -121,6 +68,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 							+ "9 - Reset game           \n"
 							+ "10 - Save game           "
 							+ "11 - Load game           "
+							+ "12 - Undo                \n"
 							+ "0 - Quit\n:: ");
 
 			// Check if user input was an integer
@@ -141,114 +89,9 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 				continue;
 			}
 
-			switch(ch) {
-				case 1: //Draw from Stock
-					game.draw();
-					break;
-				case 2: //Draw from Foundation
-					System.out.println("Which foundation?");
-					System.out.print("1:"+Constant.SPDS
-						+ ", 2:"+Constant.HRTS
-						+ ", 3:"+Constant.DMND
-						+ ", 4:"+Constant.CLBS
-						+ "\n:: ");
-					pilenumber = numberInput();
-					if(pilenumber < 1 || pilenumber > 4){
-						error = 9;
-						break;
-					}
-					game.getHand().push(game.getFromFoundation(Constant.SUITS[pilenumber - 1]));
-					break;
-				case 3: //Draw from Tableu
-					System.out.print("Which tableu pile number?\n:: ");
-					pilenumber = numberInput();
-					if(pilenumber < 1 || pilenumber > 7){
-						error = 9;
-						break;
-					}
-					System.out.print("How many cards?\n:: ");
-					int amount = 0;
-					if ((amount = numberInput()) == -1) {
-						error = 1;
-						break;
-					}
-					game.setHand(game.getFromTableu(pilenumber - 1, amount));
-					break;
-				case 4: //Draw from Talon
-					game.getHand().push(game.getFromTalon());
-					break;
-				case 5: //Place on Foundation
-					if(game.getHand().getSize() > 1) {
-						error = 8;
-						break;
-					}
-					if(!game.getHand().isEmpty()) {
-						if(!game.moveToFoundation(game.getHand().peek())){
-							error = 3;
-							break;
-						}
-						game.getHand().pop();
-					}
-					break;
-				case 6: //Place on Tableu
-					System.out.print("Which tableu pile number?\n:: ");
-					pilenumber = numberInput();
-					if(pilenumber < 1 || pilenumber > 7){
-						error = 9;
-						break;
-					}
-					while(!game.getHand().isEmpty()) {
-						if(!game.moveToTableu(game.getHand().peek(), pilenumber - 1)){
-							error = 4;
-							break;
-						}
-						game.getHand().pop();
-					}
-					break;
-				case 7: //Throw away a card
-					while(!game.getHand().isEmpty()) game.throwAway(game.getHand().pop());
-					break;
-				case 8: //Redeal
-					if(game.redeal() == -1) {
-						error = 6;
-					}
-					break;
-				case 9: //Reset game
-					game = new SolitaireWrapper();
-					game.getHand().clear();
-					break;
-				case 10: //Save
-					System.out.print("Enter the filename:: ");
-					if(!game.saveGame(sc.nextLine())) error = 7;
-					break;
-				case 11: //Load
-					System.out.print("Enter the filename:: ");
-					if(!game.loadGame(sc.nextLine())) error = 7;
-					break;
-				case 12: // Undo
-					game.undo();
-					break;
-				case 13: // Test moveSingleCard
-					System.out.print("Enter src and dest piles:: ");
-					int srcp = numberInput();
-					int destp = numberInput();
-					this.game.moveSingleCard(srcp, destp);
-				case 14: // Test moveMultipleCards
-					System.out.print("Enter src dest and amount:: ");
-					int tsrcp = numberInput();
-					int tdestp = numberInput();
-					int tamt = numberInput();
-					this.game.moveMultipleCards(tsrcp, tdestp, tamt);
-				case 99: // View stacks
-					System.out.println("Hand: " + game.getHand());
-					System.out.println("Local Hand: " + game.getHand());
-					break;
-				default:
-					error = 1;
-					break;
-			}
-			// Check for face down cards in the tableus
-			//if(ch > 4 && ch < 8 && error == 0) game.openTableus();
+			int[] input = {ch};
+			error = processGameInput(input);
+
 			// Check if hand has a null card
 			if(game.getHand() == null || (!game.getHand().isEmpty() && game.getHand().peek() == null)) {
 				System.out.println("Hand is / has null");
@@ -264,7 +107,7 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 				System.out.print("\n\nTry again? (Y/N)\n:: ");
 				dmp = sc.nextLine();
 				if(dmp.equalsIgnoreCase("y")){
-					game = new SolitaireWrapper();
+					game = new Solitaire();
 					game.getHand().clear();
 					flush();
 				} else {
@@ -273,5 +116,103 @@ public class SolitaireCommandLineIO implements SolitaireIO {
 			}
 		} while(error != 0);
 		return true;
+	}
+
+	public int processGameInput(int[] input) {
+		error = 0;
+		if (input.length != 1) return 1;
+		int ch = input[0];
+		switch(ch) {
+			case 1: //Draw from Stock
+				game.draw();
+				break;
+			case 2: //Draw from Foundation
+				System.out.println("Which foundation?");
+				System.out.print("1:"+Constant.SPDS
+					+ ", 2:"+Constant.HRTS
+					+ ", 3:"+Constant.DMND
+					+ ", 4:"+Constant.CLBS
+					+ "\n:: ");
+				pilenumber = numberInput();
+				if(pilenumber < 1 || pilenumber > 4){
+					error = 9;
+					break;
+				}
+				game.getHand().push(game.getFromFoundation(Constant.SUITS[pilenumber - 1]));
+				break;
+			case 3: //Draw from Tableu
+				System.out.print("Which tableu pile number?\n:: ");
+				pilenumber = numberInput();
+				if(pilenumber < 1 || pilenumber > 7){
+					error = 9;
+					break;
+				}
+				System.out.print("How many cards?\n:: ");
+				int amount = 0;
+				if ((amount = numberInput()) == -1) {
+					error = 1;
+					break;
+				}
+				game.setHand(game.getFromTableu(pilenumber - 1, amount));
+				break;
+			case 4: //Draw from Talon
+				game.getHand().push(game.getFromTalon());
+				break;
+			case 5: //Place on Foundation
+				if(game.getHand().getSize() > 1) {
+					error = 8;
+					break;
+				}
+				if(!game.getHand().isEmpty()) {
+					if(!game.moveToFoundation(game.getHand().peek())){
+						error = 3;
+						break;
+					}
+					game.getHand().pop();
+				}
+				break;
+			case 6: //Place on Tableu
+				System.out.print("Which tableu pile number?\n:: ");
+				pilenumber = numberInput();
+				if(pilenumber < 1 || pilenumber > 7){
+					error = 9;
+					break;
+				}
+				while(!game.getHand().isEmpty()) {
+					if(!game.moveToTableu(game.getHand().peek(), pilenumber - 1)){
+						error = 4;
+						break;
+					}
+					game.getHand().pop();
+				}
+				break;
+			case 7: //Throw away a card
+				while(!game.getHand().isEmpty()) game.throwAway(game.getHand().pop());
+				break;
+			case 8: //Redeal
+				if(game.redeal() == -1) {
+					error = 6;
+				}
+				break;
+			case 9: //Reset game
+				game = new Solitaire();
+				game.getHand().clear();
+				break;
+			case 10: //Save
+				System.out.print("Enter the filename:: ");
+				if(!game.saveGame(sc.nextLine())) error = 7;
+				break;
+			case 11: //Load
+				System.out.print("Enter the filename:: ");
+				if(!game.loadGame(sc.nextLine())) error = 7;
+				break;
+			case 12: // Undo
+				game.undo();
+				break;
+			default:
+				error = 1;
+				break;
+		}
+		return error;
 	}
 }

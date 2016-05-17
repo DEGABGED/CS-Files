@@ -113,6 +113,7 @@ public class Solitaire {
 		for(int i=0; i<move.getCount(); i++) {
 			src.push(dest.pop());
 			if(move.getSrc() == 0) faceCard(src.peek(), false);
+			else if(move.getSrc() == 1) faceCard(src.peek(), true);
 		}
 
 		if (this.moves.isEmpty()) this.moveCount = -1;

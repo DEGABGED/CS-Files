@@ -152,13 +152,14 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 			status.setText(statusLabel);
 		}
 		// repainting
-		this.canvas.updateView(this.game, this.clickedPile);
+		int[] args = {this.clickedPile};
+		this.canvas.updateView(this.game, args);
 	}
 
 	public boolean getGameInput(Object o) {
 		MouseEvent e = (MouseEvent) o;
 		int x = e.getX(), y = e.getY();
-		int[] cardPos = canvas.getChosenPile(x,y); // A y value of 0 means 'top of the pile'
+		int[] cardPos = GUITemplate.getChosenPile(x,y); // A y value of 0 means 'top of the pile'
 		// Set the cardPos[1] for tableus such that the top card is card 0
 		if(cardPos[0] >= 7 && cardPos[0] < 14) {
 			cardPos[1] = game.getTableus()[cardPos[0] - 7].getSize() - cardPos[1] - 1;
@@ -175,26 +176,24 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 
 		this.clickedPile = cardPos[0];
 		// Prepare to move the cards
-		boolean output = true;
+		int output = 1;
 		move.push(new Integer(cardPos[0]));
 		move.push(new Integer(cardPos[1]));
 		if (cardPos[0] == 0 || move.getSize() >= 4) {
-			output = processGameInput();
+			// Build input array
+			int[] input = new int[move.getSize()];
+			for (int i=move.getSize()-1; i>=0; i--) input[i] = (move.pop()).intValue();
+			output = processGameInput(input);
 			move.clear();
 		}
 
-		// Change the pointed pile
-		// if(output) {
-			printGameState();
-		// }
-		// System.out.println(this.game.getMoves());
-		// System.out.println(this.game.getHand());
-		return output;
+		printGameState();
+		return output > 0 ? true : false;
 	}
 
-	private boolean processGameInput() {
+	public int processGameInput(int[] input) {
 			this.clickedPile = -1;
-			if (move.getSize() == 2) {
+			if (input.length == 2) {
 				// Clicked pile is stock
 				// Either move 1 from stock to talon
 				// or move all from talon to stock
@@ -204,18 +203,16 @@ public class SolitaireGraphicalIO implements SolitaireIO, MouseListener, ActionL
 					this.game.draw();
 				}
 			} else {
-				int[] moves = new int[4];
-				for(int i=3; i>=0; i--) moves[i] = (move.pop()).intValue();
-				System.out.println("Processing pile " + moves[0] + " cndx " + moves[1] + " -> pile " + moves[2] + " cndx " + moves[3]);
-				moves[1]++; // convert card num index to card num
-				if (moves[1] < 2) {
+				System.out.println("Processing pile " + input[0] + " cndx " + input[1] + " -> pile " + input[2] + " cndx " + input[3]);
+				input[1]++; // convert card num index to card num
+				if (input[1] < 2) {
 					// Single card
-					if (!this.game.moveSingleCard(moves[0], moves[2])) return false;
+					if (!this.game.moveSingleCard(input[0], input[2])) return 0;
 				} else {
 					// Multiple cards
-					if (!this.game.moveMultipleCards(moves[0], moves[2], moves[1])) return false;
+					if (!this.game.moveMultipleCards(input[0], input[2], input[1])) return 0;
 				}
 			}
-			return true;
+			return 1;
 	}
 }
