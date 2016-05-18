@@ -58,17 +58,57 @@ public class Solitaire {
 	}
 
 	/**
-	* The following accessor methods are for use by the SolitaireIO classes.
+	* Accessor method for private attribute talon.
+	* @return Talon pile.
 	*/
 	public Deck getTalon() { return this.talon; }
+
+	/**
+	* Accessor method for private attribute foundations.
+	* @return Foundations (in array form).
+	*/
 	public Deck[] getFoundations() { return this.foundations; }
+
+	/**
+	* Accessor method for private attribute stock.
+	* @return Stock pile.
+	*/
 	public Deck getStock() { return this.stock; }
+
+	/**
+	* Accessor method for private attribute tableu.
+	* @return Tableus (in array form).
+	*/
 	public Deck[] getTableus() { return this.tableu; }
+
+	/**
+	* Accessor method for private attribute redealsLeft.
+	* @return Number of redeals left.
+	*/
 	public int getRedealsLeft() { return this.redealsLeft; }
+
+	/**
+	* Accessor method for private attribute hand.
+	* @return Hand pile.
+	*/
 	public Deck getHand() { return this.hand; }
+
+	/**
+	* Accessor method for private attribute moves.
+	* @return LinkedStack of moves.
+	*/
 	public LinkedStack<Move> getMoves() { return this.moves; }
 
+	/**
+	* Mutator method for private attribute hand.
+	* @param hand New hand pile.
+	*/
 	public void setHand(Deck hand) { this.hand = hand; }
+
+	/**
+	* Accessor method for private attribute moveCount.
+	* @return Number of moves done.
+	*/
 	public int getMoveCount() { return this.moveCount; }
 
 	private int openTableus() {

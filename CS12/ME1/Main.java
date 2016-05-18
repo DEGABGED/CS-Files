@@ -14,7 +14,8 @@ import java.util.Scanner;
 public class Main {
 	/**
 	* Main method which handles the CLI and GUI versions of the game, as well as the 
-	* game loop of the CLI version. By default, it runs the GUI version.
+	* game loop of the CLI version. By default, it runs the GUI version. This method
+	* also handles the CLI's game loop.
 	* @param args If -no-gui is indicated, the CLI version of the game will run.
 	*/
 	public static void main(String[] args) {

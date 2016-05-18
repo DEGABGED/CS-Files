@@ -58,7 +58,7 @@ public class Card {
 
 	/**
 	* Mutator method for private attribute faceUp
-	* @param up
+	* @param up Whether or not the card is face up
 	*/
 	public void setFaceUp(boolean up) { this.faceUp = up; }
 
