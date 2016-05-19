@@ -6,6 +6,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
 
+/**
+* <h1>SolitaireGraphicalController</h1>
+* The SolitaireGraphicalController class, which implements the
+* SolitaireController interface, handles the flow of data between the Solitaire
+* game object and the user interface (in this case, the GUI).
+*
+* @author	Francis Zac dela Cruz
+* @since	2015-05-18
+*/
 public class SolitaireGraphicalController implements SolitaireController, MouseListener, ActionListener {
 	private SolitaireGraphicalView canvas;
 	private JFrame frame;
@@ -26,6 +35,10 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 	private LinkedStack<Integer> move;
 	private int clickedPile;
 
+	/**
+	 * This constructor creates a new game object and move stack, and sets up
+	 * the Java Swing GUI.
+	 */
 	public SolitaireGraphicalController() {
 		// For the game itself
 		this.game = new SolitaireWrapper();
@@ -89,6 +102,10 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 		frame.setResizable(false);
 	}
 
+	/**
+	 * Listens for performed actions, particularly clicks in the menu buttons,
+	 * and processes them.
+	 */
 	public void actionPerformed(ActionEvent e) {
 		String source = e.getActionCommand();
 		switch(source) {
@@ -124,22 +141,46 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 		printGameState();
 	}
 
+	/**
+	 * Implemented from MouseListener.
+	 * @param e Object which contains data on the mouse action.
+	 */
 	public void mouseEntered(MouseEvent e) {
 	}
 
+	/**
+	 * Implemented from MouseListener.
+	 * @param e Object which contains data on the mouse action.
+	 */
 	public void mouseExited(MouseEvent e) {
 	}
 
+	/**
+	 * Listens for mouse clicks and passes the object containing mouse action
+	 * data to the game input method.
+	 * @param e Object which contains data on the mouse action.
+	 */
 	public void mouseClicked(MouseEvent e) {
 		getGameInput(e);
 	}
 
+	/**
+	 * Implemented from MouseListener.
+	 * @param e Object which contains data on the mouse action.
+	 */
 	public void mousePressed(MouseEvent e) {
 	}
 
+	/**
+	 * Implemented from MouseListener.
+	 * @param e Object which contains data on the mouse action.
+	 */
 	public void mouseReleased(MouseEvent e) {
 	}
 
+	/**
+	 * Prints the game state to the view. Also handles the status bar.
+	 */
 	public void printGameState() {
 		// reprint game status
 		if (this.game.isWin()) {
@@ -156,6 +197,11 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 		this.canvas.updateView(this.game, args);
 	}
 
+	/**
+	 * Gets the game input, in this case the MouseEvent object, and prepares it
+	 * into an array before having it processed.
+	 * @param o Contains the mouse input data.
+	 */
 	public boolean getGameInput(Object o) {
 		MouseEvent e = (MouseEvent) o;
 		int x = e.getX(), y = e.getY();
@@ -190,6 +236,11 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 		return output > 0 ? true : false;
 	}
 
+	/**
+	 * Processes the game input.
+	 * @param input Game input, in this case a 2 or 4 element array indicating
+	 * the pile and card index clicked.
+	 */
 	public int processGameInput(int[] input) {
 			this.clickedPile = -1;
 			if (input.length == 2) {

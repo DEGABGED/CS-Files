@@ -10,7 +10,7 @@ package me1.delacruz;
 */
 public class Deck extends LinkedStack<Card> {
 	/**
- 	 * Constructs the Deck object using the constructor for the LinkedStack with
+ 	 * This constructor constructs the Deck object using the constructor for the LinkedStack with
  	 * generic type Card.
  	 */
 	public Deck() {

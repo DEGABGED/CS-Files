@@ -111,6 +111,13 @@ public class Solitaire {
 	*/
 	public int getMoveCount() { return this.moveCount; }
 
+	/**
+	 * Opens up the top card of all tableus. Because of the way the
+	 * moves are done, at most 1 top card is ever face down, so only 1 card has
+	 * to be turnt up.
+	 * @return The tableu pile where the top card was flipped. Returns -1 if
+	 * no card was flipped.
+	 */
 	private int openTableus() {
 		int i = 0;
 		for(; i<7; i++) {
@@ -123,6 +130,11 @@ public class Solitaire {
 		return -1;
 	}
 
+	/**
+	 * Undoes a single move. Single moves include redeals, flipping
+	 * open a face down top tableu card, moving a single card between tableus, 
+	 * etc.
+	 */
 	public void undo() {
 		if (this.moves.isEmpty()) return;
 		Move move = this.moves.pop();
@@ -373,7 +385,7 @@ public class Solitaire {
 
 	/**
 	* Saves the game state into the chosen filename.
-	*	@param filename Filename / directory of the save file.
+	* @param filename Filename / directory of the save file.
 	* @return Whether or not the file saving was successful.
 	*/
 	public boolean saveGame(String filename) {

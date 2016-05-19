@@ -2,6 +2,15 @@ package me1.delacruz;
 
 import java.util.Scanner;
 
+/**
+* <h1>SolitaireCommandLineController</h1>
+* The SolitaireCommandLineController class, which implements the
+* SolitaireController interface, handles the flow of data between the Solitaire
+* game object and the user interface (in this case, the CLI).
+*
+* @author	Francis Zac dela Cruz
+* @since	2015-05-18
+*/
 public class SolitaireCommandLineController implements SolitaireController {
 	private Solitaire game;
 	private SolitaireView view;
@@ -11,6 +20,10 @@ public class SolitaireCommandLineController implements SolitaireController {
 	private int pilenumber;
 	private String dmp;
 
+	/**
+	 * This constructor creates a game object and a view object for the 
+	 * controller. Other variables are instantiated.
+	 */
 	public SolitaireCommandLineController() {
 		this.game = new Solitaire();
 		this.view = new SolitaireCommandLineView();
@@ -46,10 +59,17 @@ public class SolitaireCommandLineController implements SolitaireController {
 		}
 	}
 
+	/**
+	 * Prints the game state.
+	 */
 	public void printGameState() {
 		this.view.updateView(this.game, new int[1]);
 	}
 
+	/**
+	 * Gets the game input.
+	 * @param o Unused object.
+	 */
 	public boolean getGameInput(Object o) { //returns false only if quit is chosen
 		flush();
 		do {
@@ -118,6 +138,12 @@ public class SolitaireCommandLineController implements SolitaireController {
 		return true;
 	}
 
+	/**
+	 * Processes the game input gotten, and calls the corresponding method in
+	 * the game object.
+	 * @param input List of game inputs in raw form. In this case, the input is
+	 * a number representing the choice of action.
+	 */
 	public int processGameInput(int[] input) {
 		error = 0;
 		if (input.length != 1) return 1;

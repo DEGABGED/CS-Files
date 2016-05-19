@@ -7,17 +7,28 @@ import java.io.File;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+/**
+* <h1>SolitaireGraphicalView</h1>
+* The SolitaireGraphicalView class, which implements the
+* SolitaireView interface, handles the GUI of the application. It also contains
+* constants regarding the coordinates and dimensions of images and margins, as
+* well as a static method that converts raw X and Y mouse coordinates into the
+* pile and card index located in those coordinates.
+*
+* @author	Francis Zac dela Cruz
+* @since	2015-05-18
+*/
 public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	private BufferedImage img;
-	private static int width = 600;
-	private static int height = 610;
-	private static int cardWidth = 70;
-	private static int cardHeight = 95;
-	private static int cardMarginX = 10;
-	private static int cardMarginY = 20;
-	private static int cardSliver = 20;
-	private static int marginX = 20;
-	private static int marginY = 25;
+	private static final int width = 600;
+	private static final int height = 610;
+	private static final int cardWidth = 70;
+	private static final int cardHeight = 95;
+	private static final int cardMarginX = 10;
+	private static final int cardMarginY = 20;
+	private static final int cardSliver = 20;
+	private static final int marginX = 20;
+	private static final int marginY = 25;
 
 	private Solitaire game;
 	private Deck stockPrint;
@@ -26,6 +37,12 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	private Deck[] tableusPrint;
 	private int clickedPile;
 	
+	/**
+	 * This constructor sets the Solitaire game and the MouseListener object.
+	 * It also sets the size of the panel.
+	 * @param game The game object.
+	 * @param listener The mouse listener object.
+	 */
 	public SolitaireGraphicalView(Solitaire game, MouseListener listener) {
 		setPreferredSize(new Dimension(width, height));
 		this.game = game;
@@ -33,14 +50,27 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 		this.clickedPile = -1; // A pile has not yet been clicked
 	}
 
+	/**
+	 * Computes the X coordinate of a tableu pile base's top left corner, given
+	 * which tableu it is.
+	 * @param x Index of tableu. First tableu is of index 0.
+	 * @return The X coordinate of the tableu's top left corner.
+	 */
 	private int row2PositionsX(int x) { return marginX+(cardMarginX+cardWidth)*x; }
+
+	/**
+	 * Computes the Y coordinate of a tableu pile base's top left corner, given
+	 * which tableu it is.
+	 * @param y Index of tableu. First tableu is of index 0.
+	 * @return The Y coordinate of the tableu's top left corner.
+	 */
 	private int row2PositionsY(int y) { return marginY+cardHeight+cardMarginY+(y*cardSliver); }
 
 	/**
 	 * This method sets the game object and clicked pile, then repaints the
 	 * JPanel.
 	 * @param game The game object.
-	 * @param clickedPile The clicked pile; for drawing the pile indicator.
+	 * @param args The clicked pile; for drawing the pile indicator.
 	 */
 	public void updateView(Solitaire game, int[] args) {
 		// Set the clicked pile and game
@@ -51,7 +81,11 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 		this.repaint();
 	}
 
-	public boolean setPiles() {
+	/**
+	 * Sets the card piles to be printed, in the proper order (reverse for
+	 * tableus, normal for everything else.)
+	 */
+	public void setPiles() {
 		// Get the list of cards to print, and in what order
 		stockPrint = game.getStock();
 		talonPrint = game.getTalon();
@@ -63,10 +97,12 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 		for(int c = 0; c < 7; c++) {
 			tableusPrint[c] = game.getTableus()[c].getReverse();
 		}
-		return true;
 	}
 
-	// The printGameState function in SGUIO will parse the card piles and pass them here
+	/**
+	 * Paints the JPanel with the proper colors and imagery.
+	 * @param ga The graphics object of the JPanel.
+	 */
 	public void paintComponent(Graphics ga) {
 		int x = 0, y = 0;
 		Graphics2D g = (Graphics2D) ga;
@@ -136,8 +172,17 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 		}
 	}
 
-	public static int[] getChosenPile(int x, int y) { //returns a 2 int array; 1st one indicates the pile, 2nd one indicates the card index
-		int[] output = {-1,0}; // The empty pile between the talon and foundations
+	/**
+	 * Gets the chosen pile and card index clicked given the raw x and y
+	 * coordinates. Since computations are dependent on graphics values and
+	 * dimensions, the method is written here, but made static.
+	 * @param x X coordinate of the click.
+	 * @param y Y coordinate of the click.
+	 * @return 2 integer array; 1st one indicating the pile, 2nd one indicating
+	 * the card index.
+	 */
+	public static int[] getChosenPile(int x, int y) {
+		int[] output = {-1,0};
 		x -= cardMarginX;
 		output[0] = x / (cardWidth+cardMarginX);
 		if (y > marginY && y < marginY+cardHeight) {
@@ -157,6 +202,11 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 		return output;
 	}
 
+	/**
+	 * Gets the corresponding image of the card, given the card itself.
+	 * @param c The card in question.
+	 * @return The image of the card, for painting.
+	 */
 	public BufferedImage getCardImage(Card c) {
 		String filename = "";
 		if(! c.getFaceUp()){ filename = "./imagedeck/155.png";}

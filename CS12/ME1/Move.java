@@ -68,7 +68,7 @@ public class Move {
 	public int getIndex() { return this.moveIndex; }
 
 	/**
-	* This method returns a string representation of the moves.
+	* Returns a string representation of the moves.
 	* For debugging.
 	* @return String representation of the move.
 	*/

@@ -1,6 +1,21 @@
 package me1.delacruz;
 
+/**
+* <h1>SolitaireCommandLineView</h1>
+* The SolitaireCommandLineView class, which implements the
+* SolitaireView interface, displays the game state to the user (in this case,
+* through the CLI)
+*
+* @author	Francis Zac dela Cruz
+* @since	2015-05-18
+*/
 public class SolitaireCommandLineView implements SolitaireView {
+	/**
+	 * Updates the view, or what the user sees.
+	 * @param game The game object, for accessing the different piles for
+	 * display.
+	 * @param args Different extra arguments. None are used here.
+	 */
 	public void updateView(Solitaire game, int[] args) {
 		int b = 0;
 		int fndtotal = 0;
