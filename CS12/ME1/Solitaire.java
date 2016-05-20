@@ -389,6 +389,7 @@ public class Solitaire {
 	* @return Whether or not the file saving was successful.
 	*/
 	public boolean saveGame(String filename) {
+		if (filename == null) return true;
 		filename.trim();
 		try {
 			File f = new File(filename);
@@ -418,6 +419,7 @@ public class Solitaire {
 	* @return Whether or not the game loading was successful.
 	*/
 	public boolean loadGame(String filename) {
+		if (filename == null) return true;
 		filename.trim();
 		try {
 			File f = new File(filename);
