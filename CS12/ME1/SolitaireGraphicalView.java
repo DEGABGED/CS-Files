@@ -139,7 +139,9 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	 * This method sets the game object and clicked pile, then repaints the
 	 * JPanel.
 	 * @param game The game object.
-	 * @param args The clicked pile; for drawing the pile indicator.
+	 * @param args A 5-integer array containing the clicked pile, the win
+	 * condition, the redeals left, the stock pile size, and the number of
+	 * moves performed.
 	 */
 	public void updateView(Solitaire game, int[] args) {
 		// Set the clicked pile and game

@@ -17,22 +17,6 @@ import java.util.Arrays;
 */
 public class SolitaireGraphicalController implements SolitaireController, MouseActionListener {
 	private SolitaireView view;
-	/*
-	private JFrame frame;
-	private JPanel statusBar;
-	private JLabel status;
-	private JMenuBar menuBar;
-
-	private JMenu options;
-	private JMenuItem newgame;
-	private JMenuItem savegame;
-	private JMenuItem loadgame;
-	private JMenuItem exitgame;
-	private JMenu gameactions;
-	private JMenuItem undo;
-	private JMenuItem redeal;
-	*/
-
 	private SolitaireWrapper game;
 	private LinkedStack<Integer> move;
 	private int clickedPile;
@@ -47,63 +31,6 @@ public class SolitaireGraphicalController implements SolitaireController, MouseA
 		this.move = new LinkedStack<>();
 		this.clickedPile = -1;
 
-		/*
-		// For the frame and template / view
-		frame = new JFrame();
-		canvas = new SolitaireGraphicalView(this.game, this);
-		frame.setLayout(new BorderLayout());
-		frame.setTitle("Solitaire (Klondlike)");
-
-		// For the status bar
-		statusBar = new JPanel();
-		frame.add(statusBar, BorderLayout.SOUTH);
-		statusBar.setPreferredSize(new Dimension(frame.getWidth(), 25));
-		statusBar.setBackground(new Color(0x40eb74));
-		statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.X_AXIS));
-		status = new JLabel("  Welcome!");
-		status.setHorizontalAlignment(SwingConstants.LEFT);
-		statusBar.add(status);
-
-		// For the menu bar
-		menuBar = new JMenuBar();
-		options = new JMenu("Options");
-		newgame = new JMenuItem("New Game");
-		newgame.setActionCommand("New");
-		newgame.addActionListener(this);
-		savegame = new JMenuItem("Save Game");
-		savegame.setActionCommand("Save");
-		savegame.addActionListener(this);
-		loadgame = new JMenuItem("Load Game");
-		loadgame.setActionCommand("Load");
-		loadgame.addActionListener(this);
-		exitgame = new JMenuItem("Exit");
-		exitgame.setActionCommand("Exit");
-		exitgame.addActionListener(this);
-		gameactions = new JMenu("Game Actions");
-		undo = new JMenuItem("Undo");
-		undo.setActionCommand("Undo");
-		undo.addActionListener(this);
-		redeal = new JMenuItem("Redeal");
-		redeal.setActionCommand("Redeal");
-		redeal.addActionListener(this);
-
-		options.add(newgame);
-		options.add(savegame);
-		options.add(loadgame);
-		options.add(exitgame);
-		gameactions.add(undo);
-		gameactions.add(redeal);
-		menuBar.add(options);
-		menuBar.add(gameactions);
-		frame.setJMenuBar(menuBar);
-
-		frame.setResizable(false);
-		frame.add(canvas, BorderLayout.CENTER);
-		frame.pack();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setVisible(true);
-		frame.setResizable(false);
-		*/
 		view = new SolitaireGraphicalView(this.game, this);
 	}
 
@@ -192,18 +119,6 @@ public class SolitaireGraphicalController implements SolitaireController, MouseA
 	 * Prints the game state to the view. Also handles the status bar.
 	 */
 	public void printGameState() {
-		// reprint game status
-		/*
-		if (this.game.isWin()) {
-			status.setText(" YOU WIN! ");
-		} else {
-			String statusLabel = "  Status: ";
-			statusLabel += "Redeals > " + this.game.getRedealsLeft();
-			statusLabel += ", Stock left > " + this.game.getStock().getSize();
-			statusLabel += ", Moves > " + this.game.getMoveCount();
-			status.setText(statusLabel);
-		}
-		*/
 		// repainting
 		int[] args = {
 			this.clickedPile,
