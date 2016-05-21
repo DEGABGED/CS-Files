@@ -138,7 +138,7 @@ public class SolitaireGraphicalController implements SolitaireController, MouseA
 	public boolean getGameInput(Object o) {
 		MouseEvent e = (MouseEvent) o;
 		int x = e.getX(), y = e.getY();
-		int[] cardPos = SolitaireGraphicalView.getChosenPile(x,y); // A y value of 0 means 'top of the pile'
+		int[] cardPos = getChosenPile(x,y); // A y value of 0 means 'top of the pile'
 		// Set the cardPos[1] for tableus such that the top card is card 0
 		if(cardPos[0] >= 7 && cardPos[0] < 14) {
 			cardPos[1] = game.getTableus()[cardPos[0] - 7].getSize() - cardPos[1] - 1;
@@ -186,7 +186,7 @@ public class SolitaireGraphicalController implements SolitaireController, MouseA
 					this.game.draw();
 				}
 			} else {
-				if (input[0] == input[2] && input[0] >= 7 && input[0] < 14) return 0;
+				if (input[0] == input[2] && input[0] > 0 && input[0] < 14) return 0;
 				input[1]++; // convert card num index to card num
 				if (input[1] < 2) {
 					// Single card
@@ -197,5 +197,34 @@ public class SolitaireGraphicalController implements SolitaireController, MouseA
 				}
 			}
 			return 1;
+	}
+
+	/**
+	 * Gets the chosen pile and card index clicked given the raw x and y
+	 * coordinates.
+	 * @param x X coordinate of the click.
+	 * @param y Y coordinate of the click.
+	 * @return 2 integer array; 1st one indicating the pile, 2nd one indicating
+	 * the card index.
+	 */
+	public int[] getChosenPile(int x, int y) {
+		int[] output = {-1,0};
+		x -= Constant.CARDMARGINX;
+		output[0] = x / (Constant.GCARDWIDTH+Constant.CARDMARGINX);
+		if (y > Constant.MARGINY && y < Constant.MARGINY+Constant.GCARDHEIGHT) {
+			output[1] = 0;
+			if (output[0] == 7 || output[0] == 2) output[0] = -1;
+		} else if (y > Constant.MARGINY+Constant.GCARDHEIGHT+Constant.CARDMARGINY && y < Constant.HEIGHT-Constant.MARGINY) {
+			output[0] += 7;
+			y -= (Constant.MARGINY+Constant.CARDMARGINY+Constant.GCARDHEIGHT);
+			if(output[0] >= 7 && output[0] < 14) {
+				output[1] = (y / Constant.CARDSLIVER);
+			} else {
+				output[0] = -1;
+			}
+		} else {
+			output[0] = -1;
+		}
+		return output;
 	}
 }
