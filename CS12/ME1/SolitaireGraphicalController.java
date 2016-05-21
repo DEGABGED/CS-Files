@@ -116,6 +116,8 @@ public class SolitaireGraphicalController implements SolitaireController, MouseA
 		switch(source) {
 			case "New":
 				this.game = new SolitaireWrapper();
+				this.move.clear();
+				this.clickedPile = -1;
 				printGameState();
 				break;
 			case "Save":
@@ -127,6 +129,8 @@ public class SolitaireGraphicalController implements SolitaireController, MouseA
 				if(!this.game.loadGame(JOptionPane.showInputDialog("Enter filename/path:: "))) {
 					JOptionPane.showMessageDialog(null, "Sorry, file IO error. Maybe the file path doesn't exist.", "File Error", JOptionPane.ERROR_MESSAGE);
 				} else {
+					this.move.clear();
+					this.clickedPile = -1;
 					printGameState();
 				}
 				break;

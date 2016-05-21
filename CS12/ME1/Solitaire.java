@@ -403,11 +403,14 @@ public class Solitaire {
 				file.write("0\n" + x.toRawString());
 			}
 			file.write("0\n");
+			file.write("" + this.redealsLeft + "\n");
 			file.flush();
 			file.close();
 		} catch(Exception e) {
 			return false;
 		}
+		this.moveCount = 0;
+		this.moves.clear();
 		return true;
 	}
 
@@ -472,10 +475,15 @@ public class Solitaire {
 				x++;
 			}
 
+			// Redeals
+			this.redealsLeft = Integer.parseInt(tokens[x]);
+
 			file.close();
 		} catch(Exception e) {
 			return false;
 		}
+		this.moveCount = 0;
+		this.moves.clear();
 		return true;
 	}
 }
