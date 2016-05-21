@@ -1,4 +1,4 @@
-package me1.delacruz;
+package mp1.delacruz;
 
 import javax.swing.*;
 import java.awt.*;

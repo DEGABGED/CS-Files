@@ -1,1 +1,1 @@
-Main-class: me1/delacruz/Main
+Main-class: mp1/delacruz/Main

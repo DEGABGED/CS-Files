@@ -1,4 +1,4 @@
-package me1.delacruz;
+package mp1.delacruz;
 
 /**
 * <h1>Deck</h1>
@@ -10,9 +10,9 @@ package me1.delacruz;
 */
 public class Deck extends LinkedStack<Card> {
 	/**
- 	 * This constructor constructs the Deck object using the constructor for the LinkedStack with
- 	 * generic type Card.
- 	 */
+	 * This constructor constructs the Deck object using the constructor for the LinkedStack with
+	 * generic type Card.
+	 */
 	public Deck() {
 		super();
 	}

@@ -1,4 +1,4 @@
-if javadoc -d javadoc me1 *.java
+if javadoc -d javadoc mp1 *.java
 then
 	echo "Successful javadoc generation."
 else

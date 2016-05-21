@@ -1,4 +1,4 @@
-package me1.delacruz;
+package mp1.delacruz;
 import java.io.*;
 import java.util.Collections;
 import java.util.ArrayList;
@@ -210,10 +210,10 @@ public class Solitaire {
 	public void throwAway(Card card) {
 		if(card != null) this.talon.push(card);
 		this.moves.push(new Move(2,1,1, moveCount));
-		if (this.hand.isEmpty()) moveCount++;
 
 		// Set the tableus
 		this.openTableus();
+		if (this.hand.isEmpty()) moveCount++;
 	}
 
 	/**
