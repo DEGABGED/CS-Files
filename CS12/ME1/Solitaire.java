@@ -168,8 +168,7 @@ public class Solitaire {
 			else if(move.getSrc() == 1) faceCard(src.peek(), true);
 		}
 
-		if (this.moves.isEmpty()) this.moveCount = -1;
-		else this.moveCount = this.moves.peek().getIndex();
+		this.moveCount = move.getIndex();
 		return;
 	}
 
@@ -407,7 +406,6 @@ public class Solitaire {
 			file.flush();
 			file.close();
 		} catch(Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -476,7 +474,6 @@ public class Solitaire {
 
 			file.close();
 		} catch(Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 		return true;

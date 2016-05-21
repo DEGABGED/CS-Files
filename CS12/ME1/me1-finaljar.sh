@@ -1,10 +1,10 @@
 if javac -d . *.java -Xlint:unchecked
 then
 	echo "Successful compilation."
-	if jar cfm MP2.jar manifest.txt imagedeck/ me1/delacruz/
+	if jar cfm CS12_MP2_DELACRUZ.jar manifest.txt imagedeck/ me1/delacruz/
 	then
 		echo 'Successful jarring'
-		java -jar MP2.jar
+		java -jar CS12_MP2_DELACRUZ.jar
 	else
 		echo 'Error in jarring'
 	fi

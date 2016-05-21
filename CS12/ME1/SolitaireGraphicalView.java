@@ -1,11 +1,10 @@
 package me1.delacruz;
 
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 
 /**
 * <h1>SolitaireGraphicalView</h1>
@@ -30,6 +29,20 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	private static final int marginX = 20;
 	private static final int marginY = 25;
 
+	private JFrame frame;
+	private JPanel statusBar;
+	private JLabel status;
+	private JMenuBar menuBar;
+
+	private JMenu options;
+	private JMenuItem newgame;
+	private JMenuItem savegame;
+	private JMenuItem loadgame;
+	private JMenuItem exitgame;
+	private JMenu gameactions;
+	private JMenuItem undo;
+	private JMenuItem redeal;
+
 	private Solitaire game;
 	private Deck stockPrint;
 	private Deck talonPrint;
@@ -43,11 +56,67 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	 * @param game The game object.
 	 * @param listener The mouse listener object.
 	 */
-	public SolitaireGraphicalView(Solitaire game, MouseListener listener) {
+	public SolitaireGraphicalView(Solitaire game, MouseActionListener listener) {
+		// For the game itself
 		setPreferredSize(new Dimension(width, height));
 		this.game = game;
 		this.addMouseListener(listener);
 		this.clickedPile = -1; // A pile has not yet been clicked
+
+		// For the frame and template / view
+		frame = new JFrame();
+		frame.setLayout(new BorderLayout());
+		frame.setTitle("Solitaire (Klondlike)");
+
+		// For the status bar
+		statusBar = new JPanel();
+		frame.add(statusBar, BorderLayout.SOUTH);
+		statusBar.setPreferredSize(new Dimension(frame.getWidth(), 25));
+		statusBar.setBackground(new Color(0x40eb74));
+		statusBar.setLayout(new BoxLayout(statusBar, BoxLayout.X_AXIS));
+		status = new JLabel("  Welcome!");
+		status.setHorizontalAlignment(SwingConstants.LEFT);
+		statusBar.add(status);
+
+		// For the menu bar
+		menuBar = new JMenuBar();
+		options = new JMenu("Options");
+		newgame = new JMenuItem("New Game");
+		newgame.setActionCommand("New");
+		newgame.addActionListener(listener);
+		savegame = new JMenuItem("Save Game");
+		savegame.setActionCommand("Save");
+		savegame.addActionListener(listener);
+		loadgame = new JMenuItem("Load Game");
+		loadgame.setActionCommand("Load");
+		loadgame.addActionListener(listener);
+		exitgame = new JMenuItem("Exit");
+		exitgame.setActionCommand("Exit");
+		exitgame.addActionListener(listener);
+		gameactions = new JMenu("Game Actions");
+		undo = new JMenuItem("Undo");
+		undo.setActionCommand("Undo");
+		undo.addActionListener(listener);
+		redeal = new JMenuItem("Redeal");
+		redeal.setActionCommand("Redeal");
+		redeal.addActionListener(listener);
+
+		options.add(newgame);
+		options.add(savegame);
+		options.add(loadgame);
+		options.add(exitgame);
+		gameactions.add(undo);
+		gameactions.add(redeal);
+		menuBar.add(options);
+		menuBar.add(gameactions);
+		frame.setJMenuBar(menuBar);
+
+		frame.setResizable(false);
+		frame.add(this, BorderLayout.CENTER);
+		frame.pack();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+		frame.setResizable(false);
 	}
 
 	/**
@@ -74,9 +143,19 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	 */
 	public void updateView(Solitaire game, int[] args) {
 		// Set the clicked pile and game
-		if (args.length != 1) return;
+		if (args.length != 5) return;
 		this.game = game;
 		this.clickedPile = args[0];
+
+		if (args[1] == 1) {
+			status.setText(" YOU WIN! ");
+		} else {
+			String statusLabel = "  Status: ";
+			statusLabel += "Redeals > " + args[2];
+			statusLabel += ", Stock left > " + args[3];
+			statusLabel += ", Moves > " + args[4];
+			status.setText(statusLabel);
+		}
 
 		this.repaint();
 	}

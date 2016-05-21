@@ -15,8 +15,9 @@ import java.util.Arrays;
 * @author	Francis Zac dela Cruz
 * @since	2015-05-18
 */
-public class SolitaireGraphicalController implements SolitaireController, MouseListener, ActionListener {
-	private SolitaireGraphicalView canvas;
+public class SolitaireGraphicalController implements SolitaireController, MouseActionListener {
+	private SolitaireView view;
+	/*
 	private JFrame frame;
 	private JPanel statusBar;
 	private JLabel status;
@@ -30,6 +31,7 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 	private JMenu gameactions;
 	private JMenuItem undo;
 	private JMenuItem redeal;
+	*/
 
 	private SolitaireWrapper game;
 	private LinkedStack<Integer> move;
@@ -45,6 +47,7 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 		this.move = new LinkedStack<>();
 		this.clickedPile = -1;
 
+		/*
 		// For the frame and template / view
 		frame = new JFrame();
 		canvas = new SolitaireGraphicalView(this.game, this);
@@ -100,6 +103,8 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 		frame.setResizable(false);
+		*/
+		view = new SolitaireGraphicalView(this.game, this);
 	}
 
 	/**
@@ -126,7 +131,8 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 				}
 				break;
 			case "Exit":
-				frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+				//frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+				System.exit(0);
 				break;
 			case "Undo":
 				// Undo handler
@@ -183,6 +189,7 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 	 */
 	public void printGameState() {
 		// reprint game status
+		/*
 		if (this.game.isWin()) {
 			status.setText(" YOU WIN! ");
 		} else {
@@ -192,9 +199,16 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 			statusLabel += ", Moves > " + this.game.getMoveCount();
 			status.setText(statusLabel);
 		}
+		*/
 		// repainting
-		int[] args = {this.clickedPile};
-		this.canvas.updateView(this.game, args);
+		int[] args = {
+			this.clickedPile,
+			this.game.isWin() ? 1 : 0,
+			this.game.getRedealsLeft(),
+			this.game.getStock().getSize(),
+			this.game.getMoveCount()
+		};
+		this.view.updateView(this.game, args);
 	}
 
 	/**
@@ -233,7 +247,7 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 		}
 
 		printGameState();
-		return output > 0 ? true : false;
+		return output > 0;
 	}
 
 	/**
@@ -253,6 +267,7 @@ public class SolitaireGraphicalController implements SolitaireController, MouseL
 					this.game.draw();
 				}
 			} else {
+				if (input[0] == input[2] && input[0] >= 7 && input[0] < 14) return 0;
 				input[1]++; // convert card num index to card num
 				if (input[1] < 2) {
 					// Single card

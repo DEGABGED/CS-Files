@@ -11,8 +11,8 @@ package me1.delacruz;
 */
 public class SolitaireWrapper extends Solitaire {
 	/**
- 	 * This constructor invokes its parent's constructor.
- 	 */
+	 * This constructor invokes its parent's constructor.
+	 */
 	public SolitaireWrapper() {
 		super();
 	}
@@ -149,6 +149,5 @@ public class SolitaireWrapper extends Solitaire {
 		while(!this.moves.isEmpty() && this.moves.peek().getIndex() == lastMove) {
 			this.undo();
 		}
-		this.moveCount++;
 	}
 }

@@ -29,13 +29,13 @@ public class Move {
 	private int moveIndex;
 
 	/**
- 	 * This constructor creates a Move object with a source pile index,
- 	 * destination pile index, a card count, and a move index.
- 	 * @param src The source pile.
- 	 * @param dest The destination pile.
- 	 * @param count The number of cards to be moved.
- 	 * @param ndx The move index.
- 	 */
+	 * This constructor creates a Move object with a source pile index,
+	 * destination pile index, a card count, and a move index.
+	 * @param src The source pile.
+	 * @param dest The destination pile.
+	 * @param count The number of cards to be moved.
+	 * @param ndx The move index.
+	 */
 	public Move(int src, int dest, int count, int ndx) {
 		this.srcPile = src;
 		this.destPile = dest;
@@ -73,6 +73,6 @@ public class Move {
 	* @return String representation of the move.
 	*/
 	public String toString() {
-		return "<"+this.srcPile+","+this.destPile+","+this.cardsMoved+">";
+		return "<"+this.moveIndex+": "+this.srcPile+","+this.destPile+","+this.cardsMoved+">";
 	}
 }

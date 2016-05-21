@@ -70,5 +70,7 @@ public class SolitaireCommandLineView implements SolitaireView {
 			}
 			System.out.print("\n");
 		}
+
+		System.out.println("Move List: " + game.getMoves());
 	}
 }
