@@ -1,4 +1,4 @@
-package me1.delacruz;
+package mp1.delacruz;
 import java.util.Arrays;
 import java.util.Scanner;
 

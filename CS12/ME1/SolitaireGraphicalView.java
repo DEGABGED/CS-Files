@@ -1,4 +1,4 @@
-package me1.delacruz;
+package mp1.delacruz;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,15 +19,6 @@ import javax.imageio.ImageIO;
 */
 public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	private BufferedImage img;
-	private static final int width = 600;
-	private static final int height = 610;
-	private static final int cardWidth = 70;
-	private static final int cardHeight = 95;
-	private static final int cardMarginX = 10;
-	private static final int cardMarginY = 20;
-	private static final int cardSliver = 20;
-	private static final int marginX = 20;
-	private static final int marginY = 25;
 
 	private JFrame frame;
 	private JPanel statusBar;
@@ -58,7 +49,7 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	 */
 	public SolitaireGraphicalView(Solitaire game, MouseActionListener listener) {
 		// For the game itself
-		setPreferredSize(new Dimension(width, height));
+		setPreferredSize(new Dimension(Constant.WIDTH, Constant.HEIGHT));
 		this.game = game;
 		this.addMouseListener(listener);
 		this.clickedPile = -1; // A pile has not yet been clicked
@@ -125,7 +116,7 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	 * @param x Index of tableu. First tableu is of index 0.
 	 * @return The X coordinate of the tableu's top left corner.
 	 */
-	private int row2PositionsX(int x) { return marginX+(cardMarginX+cardWidth)*x; }
+	private int row2PositionsX(int x) { return Constant.MARGINX+(Constant.CARDMARGINX+Constant.GCARDWIDTH)*x; }
 
 	/**
 	 * Computes the Y coordinate of a tableu pile base's top left corner, given
@@ -133,13 +124,15 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 	 * @param y Index of tableu. First tableu is of index 0.
 	 * @return The Y coordinate of the tableu's top left corner.
 	 */
-	private int row2PositionsY(int y) { return marginY+cardHeight+cardMarginY+(y*cardSliver); }
+	private int row2PositionsY(int y) { return Constant.MARGINY+Constant.GCARDHEIGHT+Constant.CARDMARGINY+(y*Constant.CARDSLIVER); }
 
 	/**
 	 * This method sets the game object and clicked pile, then repaints the
 	 * JPanel.
 	 * @param game The game object.
-	 * @param args The clicked pile; for drawing the pile indicator.
+	 * @param args A 5-integer array containing the clicked pile, the win
+	 * condition, the redeals left, the stock pile size, and the number of
+	 * moves performed.
 	 */
 	public void updateView(Solitaire game, int[] args) {
 		// Set the clicked pile and game
@@ -186,7 +179,7 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 		int x = 0, y = 0;
 		Graphics2D g = (Graphics2D) ga;
 		g.setColor(new Color(0x00bb44)); //greeeen
-		g.fillRect(0, 0, width, height);
+		g.fillRect(0, 0, Constant.WIDTH, Constant.HEIGHT);
 		g.setColor(Color.BLACK);
 
 		this.setPiles();
@@ -194,91 +187,61 @@ public class SolitaireGraphicalView extends JPanel implements SolitaireView {
 		//Print the stock and talon
 		if(stockPrint!=null && !stockPrint.isEmpty()) {
 			g.drawImage(getCardImage(stockPrint.peek())
-			, marginX, marginY, cardWidth, cardHeight, null);
+			, Constant.MARGINX, Constant.MARGINY, Constant.GCARDWIDTH, Constant.GCARDHEIGHT, null);
 		} else {
-			g.drawRect(marginX, marginY, cardWidth, cardHeight);
+			g.drawRect(Constant.MARGINX, Constant.MARGINY, Constant.GCARDWIDTH, Constant.GCARDHEIGHT);
 		}
 
-		int cmxcw = cardMarginX + cardWidth;
+		int cmxcw = Constant.CARDMARGINX + Constant.GCARDWIDTH;
 		if(talonPrint!=null && !talonPrint.isEmpty()) {
 			g.drawImage(getCardImage(talonPrint.peek())
-			, marginX+cmxcw, marginY, cardWidth, cardHeight, null);
+			, Constant.MARGINX+cmxcw, Constant.MARGINY, Constant.GCARDWIDTH, Constant.GCARDHEIGHT, null);
 		} else {
-			g.drawRect(marginX+(cmxcw), marginY, cardWidth, cardHeight);
+			g.drawRect(Constant.MARGINX+(cmxcw), Constant.MARGINY, Constant.GCARDWIDTH, Constant.GCARDHEIGHT);
 		}
 
 		//Print the foundations
 		for(int c = 0; c<4; c++) {
 			if(foundationsPrint[c]!=null && !foundationsPrint[c].isEmpty()) {
 				g.drawImage(getCardImage(foundationsPrint[c].peek())
-				, marginX+(cmxcw)*(c+3), marginY, cardWidth, cardHeight, null);
+				, Constant.MARGINX+(cmxcw)*(c+3), Constant.MARGINY, Constant.GCARDWIDTH, Constant.GCARDHEIGHT, null);
 			} else {
-				g.drawRect(marginX+(cmxcw)*(c+3), marginY, cardWidth, cardHeight);
+				g.drawRect(Constant.MARGINX+(cmxcw)*(c+3), Constant.MARGINY, Constant.GCARDWIDTH, Constant.GCARDHEIGHT);
 			}
 		}
 
 		//Print the tableus
-		int mychcmy = marginY+cardHeight+cardMarginY;
+		int mychcmy = Constant.MARGINY+Constant.GCARDHEIGHT+Constant.CARDMARGINY;
 		int t = 0;
 		for(int c = 0; c<7; c++) {
 			t=0;
 			if(tableusPrint[c]!=null) {
 				while(!tableusPrint[c].isEmpty()) {
 					g.drawImage(getCardImage(tableusPrint[c].pop())
-					, marginX+(cmxcw)*c, mychcmy+(t*cardSliver), cardWidth, cardHeight, null);
+					, Constant.MARGINX+(cmxcw)*c, mychcmy+(t*Constant.CARDSLIVER), Constant.GCARDWIDTH, Constant.GCARDHEIGHT, null);
 					t++;
 				}
 			} else {
-				g.drawRect(marginX+(cmxcw)*c, mychcmy+(y*cardSliver), cardWidth, cardHeight);
+				g.drawRect(Constant.MARGINX+(cmxcw)*c, mychcmy+(y*Constant.CARDSLIVER), Constant.GCARDWIDTH, Constant.GCARDHEIGHT);
 			}
 		}
 
 		//Print the pile indicator
 		if (this.clickedPile >= 0 && this.clickedPile < 7 && this.clickedPile != 2) {
 			// Point up
-			int triBaseX = marginX + (cardWidth + cardMarginX)*(clickedPile) + 30;
-			int triBaseY = marginY + cardHeight + 11;
+			int triBaseX = Constant.MARGINX + (Constant.GCARDWIDTH + Constant.CARDMARGINX)*(clickedPile) + 30;
+			int triBaseY = Constant.MARGINY + Constant.GCARDHEIGHT + 11;
 			int xarr[] = {triBaseX, triBaseX+5, triBaseX+10};
 			int yarr[] = {triBaseY, triBaseY-10, triBaseY};
 			g.fillPolygon(xarr, yarr, 3);
 		} else if (this.clickedPile >= 7 && this.clickedPile < 14) {
 			// Point down
-			int triBaseX = marginX + (cardWidth + cardMarginX)*(clickedPile - 7) + 30;
-			int triBaseY = marginY + cardHeight + 1;
+			int triBaseX = Constant.MARGINX + (Constant.GCARDWIDTH + Constant.CARDMARGINX)*(clickedPile - 7) + 30;
+			int triBaseY = Constant.MARGINY + Constant.GCARDHEIGHT + 1;
 			int xarr[] = {triBaseX, triBaseX+5, triBaseX+10};
 			int yarr[] = {triBaseY, triBaseY+10, triBaseY};
 			g.fillPolygon(xarr, yarr, 3);
 		}
-	}
-
-	/**
-	 * Gets the chosen pile and card index clicked given the raw x and y
-	 * coordinates. Since computations are dependent on graphics values and
-	 * dimensions, the method is written here, but made static.
-	 * @param x X coordinate of the click.
-	 * @param y Y coordinate of the click.
-	 * @return 2 integer array; 1st one indicating the pile, 2nd one indicating
-	 * the card index.
-	 */
-	public static int[] getChosenPile(int x, int y) {
-		int[] output = {-1,0};
-		x -= cardMarginX;
-		output[0] = x / (cardWidth+cardMarginX);
-		if (y > marginY && y < marginY+cardHeight) {
-			output[1] = 0;
-			if (output[0] == 7 || output[0] == 2) output[0] = -1;
-		} else if (y > marginY+cardHeight+cardMarginY && y < height-marginY) {
-			output[0] += 7;
-			y -= (marginY+cardMarginY+cardHeight);
-			if(output[0] >= 7 && output[0] < 14) {
-				output[1] = (y / cardSliver);
-			} else {
-				output[0] = -1;
-			}
-		} else {
-			output[0] = -1;
-		}
-		return output;
 	}
 
 	/**

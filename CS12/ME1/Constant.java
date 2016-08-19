@@ -1,4 +1,4 @@
-package me1.delacruz;
+package mp1.delacruz;
 
 /**
 * <h1>Constant</h1>
@@ -58,4 +58,15 @@ public class Constant {
 								"File error. Maybe the file doesn't exist. Try again.",
 								"Only one card at a time can be moved to the foundation. Try again.",
 								"Chosen pile is out of bounds. Try again."};
+
+	// GUI dimensions and sizes
+	public static final int WIDTH = 600;
+	public static final int HEIGHT = 610;
+	public static final int GCARDWIDTH = 70;
+	public static final int GCARDHEIGHT = 95;
+	public static final int CARDMARGINX = 10;
+	public static final int CARDMARGINY = 20;
+	public static final int CARDSLIVER = 20;
+	public static final int MARGINX = 20;
+	public static final int MARGINY = 25;
 }
