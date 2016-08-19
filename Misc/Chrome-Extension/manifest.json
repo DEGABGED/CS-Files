@@ -1,0 +1,15 @@
+{
+	"name": "Work Matrix",
+	"description": "Replaces your chrome newtab with an Eisenhower matrix.",
+	"version": "0.1.0",
+	"manifest_version": 2,
+	"icons": {
+		"128": "icon_128.png"
+	},
+	"chrome_url_overrides": {
+		"newtab": "index.html"
+	},
+	"permissions": [
+		"storage"
+	]
+}
