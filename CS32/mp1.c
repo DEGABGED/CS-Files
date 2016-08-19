@@ -14,14 +14,16 @@ Stack * push(Stack * top, int data) {
 	return new_top;
 }
 
-int pop(Stack * top) {
-	if (top == NULL) return -1;
-	else {
-		int ret = top->data;
+Stack * pop(Stack * top, int * num) {
+	if (top == NULL) {
+		*num = -1;
+		return NULL;
+	} else {
+		*num = top->data;
 		Stack * retnode = top;
 		top = top->below;
 		free(retnode);
-		return ret;
+		return top;
 	}
 }
 
@@ -41,18 +43,23 @@ FILE * readNumber(FILE * fin, int * number, char * lastchar) {
 	return fin;
 }
 
+int stackPerm(Stack * top, int size) {
+
+}
+
+Stack * freeStack(Stack * top) {
+	int dump = 0;
+	while(top != NULL) pop(top, &dump);
+	return NULL;
+}
+
 void main() {
 	// FILE IO
-	/* char * input;
-	int input_size = 100;
-	input = (char*) malloc(input_size);
-	*(input+input_size-1) = '\0';
-	*/
 	char lastchar;
 	int numinput;
-	int numlist_size = 0;
-	int * numlist;
-	int ptr;
+	int stack_size = 0;
+	Stack * top = NULL;
+	Stack * ptr = NULL;
 	FILE * fin;
 	int not_end = 1;
 	fin = fopen("input.txt", "r");
@@ -62,27 +69,21 @@ void main() {
 		switch(lastchar) {
 			case ':':
 				// Number is size of stack
-				numlist_size = numinput;
-				numlist = (int*) malloc(sizeof(int) * numlist_size);
-				ptr = 0;
+				stack_size = numinput;
 				break;
 			case ',':
 				// Number is part of stack
-				if(ptr >= numlist_size) break;
-				numlist[ptr] = numinput;
-				ptr++;
+				top = push(top, numinput);
 				break;
 			case '\n':
 				// Stack is finished
-				if(ptr < numlist_size)
-					numlist[ptr] = numinput;
-				ptr = 0;
-				while(ptr < numlist_size) {
-					printf("%d, ", numlist[ptr]);
-					ptr++;
+				top = push(top, numinput);
+				while(top != NULL) {
+					top = pop(top, &numinput);
+					printf("%d, ", numinput);
 				}
 				printf("\n\n");
-				free(numlist);
+				freeStack(top);
 				break;
 			case 'E':
 				// Get out
