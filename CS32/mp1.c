@@ -60,8 +60,11 @@ void main() {
 	int stack_size = 0;
 	Stack * top = NULL;
 	Stack * ptr = NULL;
+	int * numlist = NULL;
+	int numptr = 0;
 	FILE * fin;
 	int not_end = 1;
+	int is_sp = 1;
 	fin = fopen("input.txt", "r");
 
 	while(!feof(fin) && not_end) {
@@ -70,20 +73,33 @@ void main() {
 			case ':':
 				// Number is size of stack
 				stack_size = numinput;
+				numlist = (int*) malloc(sizeof(int) * stack_size);
+				while(numptr < stack_size) {
+					numlist[numptr] = numptr + 1;
+					numptr++;
+				}
+				numptr = 0;
+				is_sp = 1;
 				break;
 			case ',':
 				// Number is part of stack
-				top = push(top, numinput);
+				if(top != NULL && numinput < top->data) {
+					is_sp = 0;
+					break;
+				} else {
+					do {
+						top = push(top, numlist[numptr]);
+						numptr++;
+					} while(top != NULL && top->data != numinput);
+					top = pop(top, &numinput);
 				break;
+				}
 			case '\n':
 				// Stack is finished
-				top = push(top, numinput);
-				while(top != NULL) {
-					top = pop(top, &numinput);
-					printf("%d, ", numinput);
-				}
-				printf("\n\n");
+				if(numinput == top->data && is_sp) printf("YES\n");
+				else printf("NO\n");
 				freeStack(top);
+				free(numlist);
 				break;
 			case 'E':
 				// Get out
