@@ -74,67 +74,15 @@ void main() {
 	// FILE IO
 	char lastchar = ' ';
 	int numinput;
-	int stack_size = 0;
+	int stack_size = -1;
 	Stack * top = NULL;
-	Stack * ptr = NULL;
-	int * numlist = NULL;
 	int numptr = 0;
 	FILE * fin;
+	FILE * fout;
 	int not_end = 1;
 	int is_sp = 1;
-	fin = fopen("largefile.txt", "r");
-
-	/*
-	while(!feof(fin) && not_end) {
-		fin = readNumber(fin, &numinput, &lastchar);
-		switch(lastchar) {
-			case ':':
-				// Number is size of stack
-				stack_size = numinput;
-				numlist = (int*) malloc(sizeof(int) * stack_size);
-				while(numptr < stack_size) {
-					numlist[numptr] = numptr + 1;
-					numptr++;
-				}
-				numptr = 0;
-				is_sp = 1;
-				break;
-			case ',':
-				// Number is part of stack
-				// If the stack isn't empty and the next permutation element is
-				//   less than the top of the stack, the former is under the top
-				//   and is thus inaccessible.
-				if(top != NULL && numinput < top->data) {
-					is_sp = 0;
-					break;
-				} else {
-					while(top == NULL || top->data != numinput) {
-						if(numptr >= stack_size) {
-							is_sp = 0;
-							break;
-						}
-						top = push(top, numlist[numptr]);
-						numptr++;
-					}
-					top = pop(top, &numinput);
-					break;
-				}
-			case '\n':
-				// Stack is finished
-				if(top != NULL && numinput == top->data && is_sp) { printf("YES\n"); }
-				else { printf("NO\n"); }
-				top = freeStack(top);
-				free(numlist);
-				numlist = NULL;
-				numptr = 0;
-				break;
-			case 'E':
-				// Get out
-				not_end = 0;
-				break;
-		}
-	}
-	*/
+	fin = fopen("mp1.txt", "r");
+	fout = fopen("201508086.txt", "w");
 
 	// Program loop (once per test case)
 	while(!feof(fin) && not_end) {
@@ -143,6 +91,8 @@ void main() {
 		is_sp = 1;
 		if(lastchar == ':') {
 			// Number is size of stack
+			if(stack_size >= 0) fputs("\n", fout);
+
 			// Init stack and list 1 to N
 			stack_size = numinput;
 			numptr = 1;
@@ -156,15 +106,13 @@ void main() {
 				}
 			}
 
-			if(is_sp) printf("YES\n");
-			else printf("NO\n");
+			if(is_sp) fputs("YES", fout);
+			else fputs("NO", fout);
 		} else if(lastchar == 'E'){
 			// It's probably the end
 			not_end = 0;
 		}
 	}
-
-	// Do stuff
 
 	// Ending
 	fclose(fin);
