@@ -10,3 +10,8 @@ Misc/Python/venv/
 *.sltr
 CS12/ME1/FinalOutput/Documentation
 CS12/ME1/me1
+CS32/*.txt
+*.aux
+*.log
+*.tex
+*.dvi

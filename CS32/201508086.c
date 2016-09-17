@@ -106,6 +106,11 @@ void main() {
 				}
 			}
 
+			if(top != NULL) {
+				top = freeStack(top);
+				is_sp = 0;
+			}
+
 			if(is_sp) fputs("YES", fout);
 			else fputs("NO", fout);
 		} else if(lastchar == 'E'){
