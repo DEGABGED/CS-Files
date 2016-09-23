@@ -28,12 +28,15 @@ List * init() {
 }
 
 // Takes tail instead to make appending O(1)
-List * append(List * tail, int data) {
+List * append(List * list, List * tail, int data) {
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
 	newnode->next = NULL;
 	tail->next = newnode;
 	tail = newnode;
+
+	//Update size of list
+	list->data = list->data + 1;
 	return tail;
 }
 
@@ -50,19 +53,16 @@ List * freeList(List * list) {
 FILE * readFiller(FILE * fin, char * str) {
 	int ndx = 0;
 	str[ndx] = (char) fgetc(fin);
-	ndx++;
-	while(str[ndx] != ':' && str[ndx] != '\n' && ndx < FILLER_SIZE) {
+	while(ndx < FILLER_SIZE) {
+		ndx++;
 		str[ndx] = (char) fgetc(fin);
 		if(str[ndx] == ':') {
 			ndx++;
 			str[ndx] = (char) fgetc(fin);
-			ndx++;
 			break;
 		} else if(str[ndx] == '\n') {
-			ndx++;
 			break;
 		}
-		ndx++;
 	}
 	if(ndx < FILLER_SIZE) str[ndx] = '\0'; //Terminate the input string
 	else str[49] = '\0';
@@ -82,19 +82,63 @@ FILE * readNumber(FILE * fin, List * list) {
 		if(numstream == 0 && stream != '0') continue;
 
 		// Append number to list
-		tail = append(tail, numstream);
+		tail = append(list, tail, numstream);
+	}
+	return fin;
+}
 
-		//Update size of list
-		list->data = list->data + 1;
+FILE * readMessage(FILE * fin, List * list) {
+	// Declarations
+	int stream = -1;
+	List * tail = list;
+	List * pretail = tail;
+	stream = fgetc(fin);
+	while(stream != 116 && stream != 10 && stream != 102) { //116: t; 10: \n
+		if(stream > 64 && stream < 91) {
+			stream -= 65;
+		} else if(stream == 32) {
+			// space
+			stream = 26;
+		}
+		tail = append(list, tail, stream);
+		if(pretail->next != NULL && pretail->next != tail) pretail = pretail->next;
+		stream = fgetc(fin);
+	}
+
+	//Remove trailing whitespace
+	if(tail->data == 26) {
+		pretail->next = NULL;
+		free(tail);
+		tail = pretail;
+		list->data -= 1;
 	}
 	return fin;
 }
 
 void printNumber(List * num) {
 	// In reverse
+	printf("%d::", num->data);
 	List * ptr = num->next;
 	while(ptr != NULL) {
 		printf("%d", ptr->data);
+		ptr = ptr->next;
+	}
+	printf("\n");
+	return;
+}
+
+void printMessage(List * msg) {
+	printf("%d::", msg->data);
+	List * ptr = msg->next;
+	char stream = '%';
+	while(ptr != NULL) {
+		if(ptr->data < 10) {
+			printf("%d", ptr->data);
+		} else {
+			if(ptr->data == 32) stream = ' ';
+			else stream = (char) (ptr->data + 55);
+			printf("%c", stream);
+		}
 		ptr = ptr->next;
 	}
 	printf("\n");
@@ -117,7 +161,7 @@ void main() {
 	
 	while(filler[0] != 'E') {
 		fin = readFiller(fin, filler);
-		printf("/%s\\\n", filler);
+		//printf("/%s\\\n", filler);
 		if(filler[0] == 'C') {
 			//Case input
 			// Reset p,q,e
@@ -134,24 +178,38 @@ void main() {
 			fin = readNumber(fin, e);
 
 			//Check if tama pagkabasa
+			printf("/%s\\\n", filler);
 			printNumber(p);
 			printNumber(q);
 			printNumber(e);
-			printf("/%s\\\n", filler);
 		} else if(filler[0] == 'B') {
 			// Decrypt m
 			printf("Decrypt X\n");
+			// Get X
+			m = freeList(m);
+			m = init();
+			fin = readMessage(fin, m);
+			printMessage(m);
 		} else if(filler[0] == 'A') {
 			// Encrypt m
 			printf("Encrypt M\n");
+			// Get M
+			m = freeList(m);
+			m = init();
+			fin = readMessage(fin, m);
+			printMessage(m);
 		} else if(filler[0] == 'E') {
 			// END
 		}
 		if(feof(fin)) break;
 	}
 
-	printf("end/%s\\\n", filler);
+	//printf("end/%s\\\n", filler);
 	// Ending
+	p = freeList(p);
+	q = freeList(q);
+	e = freeList(e);
+	m = freeList(m);
 	fclose(fin);
 	fclose(fout);
 }
