@@ -8,18 +8,6 @@ typedef struct List {
 	struct List * next;
 } List;
 
-List * add(List * a, List * b) {
-
-}
-
-List * mult(List * a, List * b) {
-
-}
-
-List * sub(List * a, List * b) {
-
-}
-
 List * init() {
 	List * out = (List*) malloc(sizeof(List));
 	out->data = 0; // Size of the list
@@ -27,7 +15,19 @@ List * init() {
 	return out;
 }
 
-// Takes tail instead to make appending O(1)
+// Append puts the new digit between the list head and first digit
+List * prepend(List * list, int data) {
+	List * newnode = (List*) malloc(sizeof(List));
+	newnode->data = data;
+	newnode->next = list->next;
+	list->next = newnode;
+
+	//Update size of list
+	list->data = list->data + 1;
+	return list;
+}
+
+// Append puts the new digit at the end
 List * append(List * list, List * tail, int data) {
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
@@ -73,8 +73,6 @@ FILE * readNumber(FILE * fin, List * list) {
 	// Declarations
 	char stream = '$';
 	int numstream = -1;
-	// Since list should be empty upon reading, assume list size = 0
-	List * tail = list;
 	while(stream != ',' && stream != '\n') {
 		stream = (char) fgetc(fin);
 		//if(stream == ' ') continue;
@@ -82,7 +80,7 @@ FILE * readNumber(FILE * fin, List * list) {
 		if(numstream == 0 && stream != '0') continue;
 
 		// Append number to list
-		tail = append(list, tail, numstream);
+		list = prepend(list, numstream);
 	}
 	return fin;
 }
@@ -90,8 +88,6 @@ FILE * readNumber(FILE * fin, List * list) {
 FILE * readMessage(FILE * fin, List * list) {
 	// Declarations
 	int stream = -1;
-	List * tail = list;
-	List * pretail = tail;
 	stream = fgetc(fin);
 	while(stream != 116 && stream != 10 && stream != 102) { //116: t; 10: \n
 		if(stream > 64 && stream < 91) {
@@ -100,16 +96,15 @@ FILE * readMessage(FILE * fin, List * list) {
 			// space
 			stream = 26;
 		}
-		tail = append(list, tail, stream);
-		if(pretail->next != NULL && pretail->next != tail) pretail = pretail->next;
+		list = prepend(list, stream);
 		stream = fgetc(fin);
 	}
 
 	//Remove trailing whitespace
-	if(tail->data == 26) {
-		pretail->next = NULL;
-		free(tail);
-		tail = pretail;
+	if(list->next->data == 26) {
+		List * retnode = list->next;
+		list->next = retnode->next;
+		free(retnode);
 		list->data -= 1;
 	}
 	return fin;
@@ -145,11 +140,178 @@ void printMessage(List * msg) {
 	return;
 }
 
+// Computes A + B
+List * add(List * a, List * b) {
+	// Assume both numbers are positive or both are negative
+	// Get the signs
+	int ka = a->data;
+	int kb = b->data;
+	int signa = ka;
+	int signb = kb;
+	int signsum = 1;
+
+	if(signa < 0) signa *= -1;
+	if(signb < 0) signb *= -1;
+
+	int k = signa;
+	if(signb > k) k = signb;
+
+	if((signa != ka) ^ (signb != kb)) {
+		// AB < 0
+		if(signa > signb) {
+			// |a| > |b|
+			signa = 1;
+			signb = -1;
+			if(ka < 0) signsum = -1; //If the bigger number is negative
+			else signsum = 1;
+		} else {
+			// |b| > |a|
+			signa = -1;
+			signb = 1;
+			if(kb < 0) signsum = -1; //If the bigger number is negative
+			else signsum = 1;
+		}
+	} else {
+		// AB >= 0
+		signa = 1;
+		signb = 1;
+		if(ka < 0) signsum = -1; //If a and b are negative
+		else signsum = 1;
+	}
+
+	k++;
+	int c = 0; // Carryover
+	int s = 0; // Sum mod 10
+	int i = 0; // Iterator
+	int t = 0; // Digit sum
+	List * sum = NULL;
+	sum = init();
+	List * sumtail = sum;
+	List * ai = a->next;
+	List * bi = b->next;
+	int adata = 0;
+	int bdata = 0;
+
+	for(; i < k-1; i++) {
+		if(ai == NULL && bi == NULL) break;
+		if(ai == NULL){
+			adata = 0;
+		} else {
+			adata = ai->data;
+			ai = ai->next;
+		}
+
+		if(bi == NULL){
+			bdata = 0;
+		} else {
+			bdata = bi->data;
+			bi = bi->next;
+		}
+
+		t = (signa*adata) + (signb*bdata) + c;
+		s = t % 10; // Get the digit
+		c = t / 10; // Update the carryover
+
+		// Append s to the sum
+		sumtail = append(sum, sumtail, s);
+	}
+
+	// Add carryover if it isn't just 0
+	if(c) {
+		sumtail = append(sum, sumtail, c);
+	}
+
+	return sum;
+}
+
+// Computes AB (might be inefficient; can be optimized later)
+List * mult(List * a, List * b) {
+	// Worry about signs and combing out the product later
+	int p = 0; // Product of digits mod 10
+	int t = 0; // Product of digits
+	int c = 0; // Carryover
+
+	// Keep track of how many ->next's pi and pj will make
+	// Size of number = pi + pj
+	int isteps = 0; // Steps *pi has made
+	int jsteps = 0; // Steps *pj has made
+
+	// Pointers in the list
+	List * product = NULL;
+	product = init();
+	List * producttail = product;
+	// Initially 0->0->NULL
+	producttail = append(product, producttail, 0);
+	List * pi = product->next; // Iterator for list a
+	List * pj = product->next; // Iterator for list b
+	List * ai = a->next; // Iterator along list a
+	List * bj = b->next; // Iterator along list b
+
+	while(ai != NULL) {
+		c = 0;
+		pj = pi; // Move pj to where pi is now
+		bj = b->next;
+		while(bj != NULL) {
+			t = (ai->data)*(bj->data) + (pj->data) + c;
+			pj->data = t % 10;
+			c = t / 10;
+
+			//Debugging
+			//printf("%dx%d\n", ai->data, bj->data);
+
+			// Move the stuff
+			if(pj->next == NULL) {
+				producttail = append(product, producttail, 0);
+			}
+			pj = pj->next;
+			bj = bj->next;
+		}
+		pj->data += c;
+
+		// Move the stuff
+		if(pi->next == NULL) {
+			producttail = append(product, producttail, 0);
+		}
+		pi = pi->next; // Might be reason for a segfault
+		ai = ai->next; // Move to the next digit of a
+	}
+
+	// Remove the trailing zero?
+	if(producttail->data == 0) {
+		while(pi != NULL && pi->next != NULL && pi->next != producttail) {
+			pi = pi->next;
+		}
+		if(pi->next == producttail) {
+			free(producttail);
+			producttail = pi;
+			pi->next = NULL;
+			product->data -= 1;
+		}
+	}
+	return product;
+}
+
+// Computes A - B
+List * sub(List * a, List * b) {
+	a->data *= -1;
+	List * amb = add(a, b);
+	a->data *= -1;
+	return amb;
+}
+
+List * base10to27(List * a) {
+
+}
+
+List * base27to10(List * a) {
+	int b = 1; // Initial Base (27^0)
+}
+
 void main() {
 	// Declarations
 	FILE * fin;
 	FILE * fout;
-	fin = fopen("INPUT.txt", "r");
+	fin = fopen("testinput.txt", "r");
 	fout = fopen("201508086.txt", "w");
 
 	char filler[FILLER_SIZE]; //Stores the useless text (eg. Alice / Bob / etc.)
@@ -158,6 +320,8 @@ void main() {
 	List * q = init();
 	List * e = init();
 	List * m = init();
+	List * pandq = NULL;
+	List * porq = NULL;
 	
 	while(filler[0] != 'E') {
 		fin = readFiller(fin, filler);
@@ -182,6 +346,14 @@ void main() {
 			printNumber(p);
 			printNumber(q);
 			printNumber(e);
+
+			//Check if the addition fxn is working
+			porq = add(p,q);
+			printNumber(porq);
+			freeList(porq);
+			pandq = mult(p,q);
+			printNumber(pandq);
+			freeList(pandq);
 		} else if(filler[0] == 'B') {
 			// Decrypt m
 			printf("Decrypt X\n");
