@@ -15,7 +15,8 @@ List * init() {
 	return out;
 }
 
-// Append puts the new digit between the list head and first digit
+// Prepend puts the new digit between the list head and first digit
+// Use when reading from highest to lowest place value
 List * prepend(List * list, int data) {
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
@@ -28,6 +29,8 @@ List * prepend(List * list, int data) {
 }
 
 // Append puts the new digit at the end
+// Use when reading from lowest to highest place value
+// O(1)
 List * append(List * list, List * tail, int data) {
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
@@ -40,6 +43,22 @@ List * append(List * list, List * tail, int data) {
 	return tail;
 }
 
+// O(e), e = number of digits of n
+List * intToList(int n) {
+	// Assume representation in base 10
+	List * output = init();
+	List * outputtail = output;
+	int b = 10; //For generality
+	int mod = 0;
+	while(n > 0) {
+		mod = n % b; // Ones digit
+		outputtail = append(output, outputtail, mod);
+		n = n / b; // Remainder
+	}
+	return output;
+}
+
+// O(n)
 List * freeList(List * list) {
 	List * ptr = list;
 	while(ptr != NULL) {
@@ -141,6 +160,7 @@ void printMessage(List * msg) {
 }
 
 // Computes A + B
+// O(n), n being the number of digits output will have
 List * add(List * a, List * b) {
 	// Assume both numbers are positive or both are negative
 	// Get the signs
@@ -225,6 +245,7 @@ List * add(List * a, List * b) {
 }
 
 // Computes AB (might be inefficient; can be optimized later)
+// O(n^2), n being the number of digits of a and b
 List * mult(List * a, List * b) {
 	// Worry about signs and combing out the product later
 	int p = 0; // Product of digits mod 10
@@ -292,6 +313,7 @@ List * mult(List * a, List * b) {
 }
 
 // Computes A - B
+// O(n), same as add
 List * sub(List * a, List * b) {
 	a->data *= -1;
 	List * amb = add(a, b);
@@ -303,8 +325,35 @@ List * base10to27(List * a) {
 
 }
 
+// Might be a bottleneck
 List * base27to10(List * a) {
-	int b = 1; // Initial Base (27^0)
+	List * b = intToList(27);
+	List * powerb = intToList(1);
+	List * oldpower = powerb; // Holds the old power of b
+	List * digita = a->next; // Holds the digit of a (b27)
+	List * output = init(); // Holds the output list
+	List * oldout = output; // Holds the old output (adding creates a new list)
+	List * tempout = NULL; // Holds the partial output (digit * power of b)
+	List * hpdigita = NULL; // Holds the list representation of digit of a
+	while(digita != NULL) {
+		hpdigita = intToList(digita->data); // Digit of a in list form
+		tempout = mult(hpdigita, powerb); // Partial outuput
+
+		output = add(output, tempout); // Add partial output to total output
+		freeList(oldout); // Free the old output
+		oldout = output; // Set the new old output
+
+		powerb = mult(powerb, b);
+		freeList(oldpower);
+		oldpower = powerb;
+		digita = digita->next; // Get the next digit
+
+		freeList(hpdigita);
+	}
+
+	freeList(powerb);
+	freeList(b);
+	return output;
 }
 
 void main() {
@@ -320,6 +369,8 @@ void main() {
 	List * q = init();
 	List * e = init();
 	List * m = init();
+
+	// Testing variable
 	List * pandq = NULL;
 	List * porq = NULL;
 	
