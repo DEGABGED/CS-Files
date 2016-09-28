@@ -2,13 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #define FILLER_SIZE 50
+#define RADIX 1000
+// Base 10
+// Doubly linked list with list head
 
 // -1 % 10 = 9 not -1
 int mod(int a, int b) {
-	while(a<0) a += 10;
-	return a % b;
+	int c = a % b;
+	if(c<0) c += 10
+	return c;
 }
 
+// For addition / subtraction
 int carryover(int a, int b) {
 	if(a*b > 0) return a / b;
 	else return a;
@@ -17,12 +22,14 @@ int carryover(int a, int b) {
 typedef struct List {
 	int data;
 	struct List * next;
+	struct List * prev;
 } List;
 
 List * init() {
 	List * out = (List*) malloc(sizeof(List));
 	out->data = 0; // Size of the list
 	out->next = NULL;
+	out->prev = NULL;
 	return out;
 }
 
@@ -31,8 +38,12 @@ List * init() {
 List * prepend(List * list, int data) {
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
+	
 	newnode->next = list->next;
+	newnode->next->prev = newnode;
+
 	list->next = newnode;
+	newnode->prev = list;
 
 	//Update size of list
 	list->data = list->data + 1;
@@ -47,7 +58,9 @@ List * append(List * list, List * tail, int data) {
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
 	newnode->next = NULL;
+
 	tail->next = newnode;
+	newnode->prev = tail;
 	tail = newnode;
 
 	//Update size of list
@@ -56,17 +69,17 @@ List * append(List * list, List * tail, int data) {
 }
 
 // O(e), e = number of digits of n
+// radix is 1000
 List * intToList(int n) {
 	// Assume representation in base 10
 	List * output = init();
 	List * outputtail = output;
-	int b = 10; //For generality
 	int modu = 0;
 	while(n > 0) {
-		// mod = n % b; // Ones digit
-		modu = mod(n, b);
+		// mod = n % RADIX; // Ones digit
+		modu = mod(n, RADIX);
 		outputtail = append(output, outputtail, modu);
-		n = n / b; // Remainder
+		n = n / RADIX; // Remainder
 	}
 	return output;
 }
@@ -105,14 +118,26 @@ FILE * readNumber(FILE * fin, List * list) {
 	// Declarations
 	char stream = '$';
 	int numstream = -1;
+	int radixstream = 0;
+	int radix = 1;
+	int i = 0;
 	while(stream != ',' && stream != '\n') {
-		stream = (char) fgetc(fin);
-		//if(stream == ' ') continue;
-		numstream = atoi(&stream);
-		if(numstream == 0 && stream != '0') continue;
+		// Read the radix-1000 number
+		for(; i<4; i++) {
+			stream = (char) fgetc(fin);
+			if(stream == ',' || stream == '\n' || stream == ' ') break;
+			numstream = atoi(&stream);
+			if(numstream == 0 && stream != '0') continue;
+			radixstream += numstream*radix;
+			radix *= 10;
+		}
 
 		// Append number to list
-		list = prepend(list, numstream);
+		if(radixstream != 0) list = prepend(list, radixstream);
+
+		// Reset values
+		i = 0;
+		radixstream = 0;
 	}
 	return fin;
 }
@@ -154,24 +179,19 @@ void printNumber(List * num) {
 	return;
 }
 
-void printNumberCorrect(List * num) {
-	// Print the number in the correct order
-	List * mun = init();
-	List * numptr = num->next;
-	while(numptr != NULL) {
-		mun = prepend(mun, numptr->data);
-		numptr = numptr->next;
+void printNumberCorrect(List * num, List * tail) {
+	if(num == tail) {
+		printf("0\n");
+		return;
 	}
 
-	numptr = mun->next;
-	printf("%d:", mun->data);
-	while(numptr != NULL) {
-		printf("%d", numptr->data);
-		numptr = numptr->next;
+	List * tailptr = tail;
+	while(tailptr != num) {
+		// Print zero padding
+		printf("%04d", tailptr->data);
+		tailptr = tailptr->prev;
 	}
-
-	freeList(mun);
-	printf("\n");
+	return;
 }
 
 void printMessage(List * msg) {
@@ -192,9 +212,22 @@ void printMessage(List * msg) {
 	return;
 }
 
+// Compares A and B (+ if A is bigger, - if B is bigger, 0 otherwise)
+int compare(List * a, List * atail, List * b, List * btail) {
+	if(a->data != b->data) return a->data - b->data;
+	if(a->data == 0) return 0;
+
+	while(atail != a) {
+		if(atail->data != btail->data) return atail->data - btail->data;
+		atail = atail->prev;
+		btail = btail->prev;
+	}
+	return 0;
+}
+
 // Computes A + B
 // O(n), n being the number of digits output will have
-List * add(List * a, List * b) {
+List * add(List * a, List * atail, List * b, List * btail) {
 	// Assume both numbers are positive or both are negative
 	// Get the signs
 	int ka = a->data;
@@ -212,7 +245,7 @@ List * add(List * a, List * b) {
 	// Faulty comparison of |a| and |b|; change later if needed
 	if((signa != ka) ^ (signb != kb)) {
 		// AB < 0
-		if(signa > signb) {
+		if(compare() {
 			// |a| > |b|
 			signa = 1;
 			signb = -1;
