@@ -15,3 +15,7 @@ CS32/*.txt
 *.log
 *.tex
 *.dvi
+*.doc
+*.docx
+*.ppt
+*.pptx

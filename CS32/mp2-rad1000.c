@@ -3,19 +3,21 @@
 #include <string.h>
 #define FILLER_SIZE 50
 #define RADIX 1000
+#define RADIXSIZE 3
+// 0 to 999,999,999 (9 digits)
 // Base 10
-// Doubly linked list with list head
+// Circular doubly linked list with list head
 
 // -1 % 10 = 9 not -1
 int mod(int a, int b) {
 	int c = a % b;
-	if(c<0) c += 10
+	if(c<0) c += b;
 	return c;
 }
 
 // For addition / subtraction
 int carryover(int a, int b) {
-	if(a*b > 0) return a / b;
+	if((a>0 && b>0) || (a<0 && b<0)) return a / b;
 	else return a;
 }
 
@@ -28,8 +30,8 @@ typedef struct List {
 List * init() {
 	List * out = (List*) malloc(sizeof(List));
 	out->data = 0; // Size of the list
-	out->next = NULL;
-	out->prev = NULL;
+	out->next = out;
+	out->prev = out;
 	return out;
 }
 
@@ -53,11 +55,13 @@ List * prepend(List * list, int data) {
 // Append puts the new digit at the end
 // Use when reading from lowest to highest place value
 // O(1)
-List * append(List * list, List * tail, int data) {
+List * append(List * list, int data) {
+	List * tail = list->prev;
 	// If new list, set the highest place value
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
-	newnode->next = NULL;
+	newnode->next = list;
+	list->prev = newnode;
 
 	tail->next = newnode;
 	newnode->prev = tail;
@@ -65,20 +69,19 @@ List * append(List * list, List * tail, int data) {
 
 	//Update size of list
 	list->data = list->data + 1;
-	return tail;
+	return list;
 }
 
 // O(e), e = number of digits of n
-// radix is 1000
+// radix is 1,000,000,000
 List * intToList(int n) {
 	// Assume representation in base 10
 	List * output = init();
-	List * outputtail = output;
 	int modu = 0;
 	while(n > 0) {
 		// mod = n % RADIX; // Ones digit
 		modu = mod(n, RADIX);
-		outputtail = append(output, outputtail, modu);
+		output = append(output, modu);
 		n = n / RADIX; // Remainder
 	}
 	return output;
@@ -86,12 +89,15 @@ List * intToList(int n) {
 
 // O(n)
 List * freeList(List * list) {
-	List * ptr = list;
-	while(ptr != NULL) {
+	List * ptr = list->next;
+	List * head = list;
+	list = ptr;
+	while(ptr != head) {
 		list = list->next;
 		free(ptr);
 		ptr = list;
 	}
+	free(ptr);
 	return NULL;
 }
 
@@ -116,28 +122,50 @@ FILE * readFiller(FILE * fin, char * str) {
 
 FILE * readNumber(FILE * fin, List * list) {
 	// Declarations
-	char stream = '$';
+	char stream[] = {'$', '\0'};
 	int numstream = -1;
 	int radixstream = 0;
-	int radix = 1;
-	int i = 0;
-	while(stream != ',' && stream != '\n') {
-		// Read the radix-1000 number
-		for(; i<4; i++) {
-			stream = (char) fgetc(fin);
-			if(stream == ',' || stream == '\n' || stream == ' ') break;
-			numstream = atoi(&stream);
-			if(numstream == 0 && stream != '0') continue;
+	int radix = RADIX / 10;
+	while(stream[0] != ',' && stream[0] != '\n') {
+		// Reset values
+		radixstream = 0;
+		radix = RADIX/10;
+		// Read the radix-1B number
+		while(radix > 0) {
+			stream[0] = (char) fgetc(fin);
+			if(stream[0] == ',' || stream[0] == '\n' || stream[0] == ' ') break;
+			numstream = atoi(stream);
+			if(numstream == 0 && stream[0] != '0') {
+				stream[0] = ',';
+				break; // Nonnumber detected
+			}
+			//printf("|%s|%d|%d|\n", stream, numstream, radix);
 			radixstream += numstream*radix;
-			radix *= 10;
+			radix /= 10;
+			numstream = 0;
 		}
+		//printf(":%d:\n", radixstream);
 
 		// Append number to list
 		if(radixstream != 0) list = prepend(list, radixstream);
+	}
+	//printf("|%d|\n", radix);
 
-		// Reset values
-		i = 0;
-		radixstream = 0;
+	// Shift the digits if necessary
+	radix *= 10;
+	if(radix>0 && radix<RADIX) {
+		List * shift_ptr = list->next;
+		int shiftee = 0;
+		int shiftee_offset = RADIX / radix;
+		while(shift_ptr != list) {
+			shift_ptr->data /= radix;
+			if(shift_ptr->next != list) shiftee = shift_ptr->next->data % radix;
+			else shiftee = 0;
+			shiftee *= shiftee_offset;
+			shift_ptr->data += shiftee;
+			shift_ptr = shift_ptr->next;
+			shiftee = 0;
+		}
 	}
 	return fin;
 }
@@ -161,6 +189,7 @@ FILE * readMessage(FILE * fin, List * list) {
 	if(list->next->data == 26) {
 		List * retnode = list->next;
 		list->next = retnode->next;
+		list->next->prev = list;
 		free(retnode);
 		list->data -= 1;
 	}
@@ -171,15 +200,16 @@ void printNumber(List * num) {
 	// In reverse
 	printf("%d::", num->data);
 	List * ptr = num->next;
-	while(ptr != NULL) {
-		printf("%d", ptr->data);
+	while(ptr != num) {
+		printf("%d.", ptr->data);
 		ptr = ptr->next;
 	}
 	printf("\n");
 	return;
 }
 
-void printNumberCorrect(List * num, List * tail) {
+void printNumberCorrect(List * num) {
+	List * tail = num->prev;
 	if(num == tail) {
 		printf("0\n");
 		return;
@@ -188,9 +218,11 @@ void printNumberCorrect(List * num, List * tail) {
 	List * tailptr = tail;
 	while(tailptr != num) {
 		// Print zero padding
-		printf("%04d", tailptr->data);
+		if(tailptr != tail) printf("%03d", tailptr->data);
+		else printf("%d", tailptr->data);
 		tailptr = tailptr->prev;
 	}
+	printf("\n");
 	return;
 }
 
@@ -198,7 +230,7 @@ void printMessage(List * msg) {
 	printf("%d::", msg->data);
 	List * ptr = msg->next;
 	char stream = '%';
-	while(ptr != NULL) {
+	while(ptr != msg) {
 		if(ptr->data < 10) {
 			printf("%d", ptr->data);
 		} else {
@@ -213,8 +245,10 @@ void printMessage(List * msg) {
 }
 
 // Compares A and B (+ if A is bigger, - if B is bigger, 0 otherwise)
-int compare(List * a, List * atail, List * b, List * btail) {
-	if(a->data != b->data) return a->data - b->data;
+int compare(List * a, List * b) {
+	List * atail = a->prev;
+	List * btail = b->prev;
+	if(a->data != b->data) return a->data - b->data; //Covers the cases when a and b are negative
 	if(a->data == 0) return 0;
 
 	while(atail != a) {
@@ -227,25 +261,34 @@ int compare(List * a, List * atail, List * b, List * btail) {
 
 // Computes A + B
 // O(n), n being the number of digits output will have
-List * add(List * a, List * atail, List * b, List * btail) {
+List * add(List * a, List * b) {
+	// Instantiate atail and btail
+	List * atail = a->prev;
+	List * btail = b->prev;
 	// Assume both numbers are positive or both are negative
 	// Get the signs
-	int ka = a->data;
+	int ka = a->data; // Stores number of digits (pos or neg depending on a)
 	int kb = b->data;
-	int signa = ka;
+	int signa = ka; // Stores abs(ka) first, then the sign of a
 	int signb = kb;
-	int signsum = 1;
+	int signsum = 1; // Stores the final sign of the sum
 
-	if(signa < 0) signa *= -1;
-	if(signb < 0) signb *= -1;
+	if(signa < 0) {
+		a->data *= -1; // for |a| comparison
+		signa *= -1;
+	}
+	if(signb < 0) {
+		b->data *= -1; // for |b| comparison
+		signb *= -1;
+	}
 
 	int k = signa;
 	if(signb > k) k = signb;
 
 	// Faulty comparison of |a| and |b|; change later if needed
-	if((signa != ka) ^ (signb != kb)) {
+	if((ka < 0) ^ (kb < 0)) {
 		// AB < 0
-		if(compare() {
+		if(compare(a, b) > 0) {
 			// |a| > |b|
 			signa = 1;
 			signb = -1;
@@ -266,6 +309,10 @@ List * add(List * a, List * atail, List * b, List * btail) {
 		else signsum = 1;
 	}
 
+	// Restore values of a->data and b->data from the abs() calc.
+	a->data = ka;
+	b->data = kb;
+
 	k++;
 	int c = 0; // Carryover
 	int s = 0; // Sum mod 10
@@ -280,15 +327,15 @@ List * add(List * a, List * atail, List * b, List * btail) {
 	int bdata = 0;
 
 	for(; i < k-1; i++) {
-		if(ai == NULL && bi == NULL) break;
-		if(ai == NULL){
+		if(ai == a && bi == b) break;
+		if(ai == a){
 			adata = 0;
 		} else {
 			adata = ai->data;
 			ai = ai->next;
 		}
 
-		if(bi == NULL){
+		if(bi == b){
 			bdata = 0;
 		} else {
 			bdata = bi->data;
@@ -297,17 +344,18 @@ List * add(List * a, List * atail, List * b, List * btail) {
 
 		t = (signa*adata) + (signb*bdata) + c;
 		// s = t % 10; // Get the digit
-		s = mod(t, 10);
+		s = mod(t, RADIX);
 		// c = t / 10; // Update the carryover
-		c = carryover(t, 10);
+		c = carryover(t, RADIX);
+		//printf("%d|%d\n", s, c);
 
 		// Append s to the sum
-		sumtail = append(sum, sumtail, s);
+		sum = append(sum, s);
 	}
 
 	// Add carryover if it isn't just 0
 	if(c) {
-		sumtail = append(sum, sumtail, c);
+		sum = append(sum, c);
 	}
 
 	return sum;
@@ -329,30 +377,29 @@ List * mult(List * a, List * b) {
 	// Pointers in the list
 	List * product = NULL;
 	product = init();
-	List * producttail = product;
 	// Initially 0->0->NULL
-	producttail = append(product, producttail, 0);
+	product = append(product, 0);
 	List * pi = product->next; // Iterator for list a
 	List * pj = product->next; // Iterator for list b
 	List * ai = a->next; // Iterator along list a
 	List * bj = b->next; // Iterator along list b
 
-	while(ai != NULL) {
+	while(ai != a) {
 		c = 0;
 		pj = pi; // Move pj to where pi is now
 		bj = b->next;
-		while(bj != NULL) {
+		while(bj != b) {
 			t = (ai->data)*(bj->data) + (pj->data) + c;
 			// pj->data = t % 10;
-			pj->data = mod(t, 10);
-			c = t / 10;
+			pj->data = mod(t, RADIX);
+			c = t / RADIX;
 
 			//Debugging
 			//printf("%dx%d\n", ai->data, bj->data);
 
 			// Move the stuff
-			if(pj->next == NULL) {
-				producttail = append(product, producttail, 0);
+			if(pj->next == product) {
+				product = append(product, 0);
 			}
 			pj = pj->next;
 			bj = bj->next;
@@ -360,25 +407,26 @@ List * mult(List * a, List * b) {
 		pj->data += c;
 
 		// Move the stuff
-		if(pi->next == NULL) {
-			producttail = append(product, producttail, 0);
+		if(pi->next == product) {
+			product = append(product, 0);
 		}
 		pi = pi->next; // Might be reason for a segfault
 		ai = ai->next; // Move to the next digit of a
 	}
 
 	// Remove the trailing zero?
-	if(producttail->data == 0) {
-		while(pi != NULL && pi->next != NULL && pi->next != producttail) {
-			pi = pi->next;
-		}
-		if(pi->next == producttail) {
-			free(producttail);
-			producttail = pi;
-			pi->next = NULL;
-			product->data -= 1;
-		}
+	List * producttail = product->prev;
+	while(producttail->data == 0) {
+		pi = producttail->prev;
+
+		pi->next = product;
+		product->prev = pi;
+		free(producttail);
+		producttail = pi;
+		product->data -= 1;
 	}
+
+	// Set if positive or negative (NONE YET)
 	return product;
 }
 
@@ -392,10 +440,11 @@ List * sub(List * a, List * b) {
 }
 
 List * base10to27(List * a) {
-
+	// None yet
 }
 
 // Might be a bottleneck
+// To be optimized (storing powers of 27 somewhere)
 List * base27to10(List * a) {
 	List * b = intToList(27);
 	List * powerb = intToList(1);
@@ -405,7 +454,7 @@ List * base27to10(List * a) {
 	List * oldout = output; // Holds the old output (adding creates a new list)
 	List * tempout = NULL; // Holds the partial output (digit * power of b)
 	List * hpdigita = NULL; // Holds the list representation of digit of a
-	while(digita != NULL) {
+	while(digita != a) {
 		hpdigita = intToList(digita->data); // Digit of a in list form
 		tempout = mult(hpdigita, powerb); // Partial outuput
 
@@ -433,13 +482,26 @@ List * extendedEuclidean(List * e, List * phin) {
 }
 
 void test() {
-	List * a = intToList(1234);
-	List * b = intToList(1000);
-	List * c = sub(a,b);
-	printNumberCorrect(c);
-	freeList(a);
-	freeList(b);
-	freeList(c);
+	// WORKS: Reading numbers, addition, subtraction (wrong on sign)
+	FILE * ftest = fopen("test.txt", "r");
+	List * a = NULL;
+	List * b = NULL;
+	List * c = NULL;
+	while(!feof(ftest)) {
+		a = init();
+		b = init();
+		ftest = readNumber(ftest, a);
+		ftest = readNumber(ftest, b);
+		printNumberCorrect(a);
+		printNumberCorrect(b);
+		c = add(a,b);
+		printf("c = ");
+		printNumberCorrect(c);
+		a = freeList(a);
+		b = freeList(b);
+		c = freeList(c);
+	}
+	fclose(ftest);
 	return;
 }
 
