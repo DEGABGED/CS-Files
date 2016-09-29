@@ -17,8 +17,8 @@ int mod(int a, int b) {
 
 // For addition / subtraction
 int carryover(int a, int b) {
-	if((a>0 && b>0) || (a<0 && b<0)) return a / b;
-	else return a;
+	if(a > 0) return a / b; //Addition
+	else return a ? -1 : 0; //Subtraction
 }
 
 typedef struct List {
@@ -147,7 +147,7 @@ FILE * readNumber(FILE * fin, List * list) {
 		//printf(":%d:\n", radixstream);
 
 		// Append number to list
-		if(radixstream != 0) list = prepend(list, radixstream);
+		list = prepend(list, radixstream);
 	}
 	//printf("|%d|\n", radix);
 
@@ -216,10 +216,12 @@ void printNumberCorrect(List * num) {
 	}
 
 	List * tailptr = tail;
+	// Print negative
+	if(num->data < 0) printf("-");
 	while(tailptr != num) {
 		// Print zero padding
-		if(tailptr != tail) printf("%03d", tailptr->data);
-		else printf("%d", tailptr->data);
+		if(tailptr != tail) printf("%03d,", tailptr->data);
+		else printf("%d,", tailptr->data);
 		tailptr = tailptr->prev;
 	}
 	printf("\n");
@@ -282,10 +284,12 @@ List * add(List * a, List * b) {
 		signb *= -1;
 	}
 
-	int k = signa;
+	int k = signa; // For determining max number of digits
 	if(signb > k) k = signb;
 
 	// Faulty comparison of |a| and |b|; change later if needed
+	//printf("%d;%d\n", ka, kb);
+	//printf("comp: %d\n", compare(a,b));
 	if((ka < 0) ^ (kb < 0)) {
 		// AB < 0
 		if(compare(a, b) > 0) {
@@ -308,6 +312,7 @@ List * add(List * a, List * b) {
 		if(ka < 0) signsum = -1; //If a and b are negative
 		else signsum = 1;
 	}
+	//printf("ss:%d\n", signsum);
 
 	// Restore values of a->data and b->data from the abs() calc.
 	a->data = ka;
@@ -347,7 +352,7 @@ List * add(List * a, List * b) {
 		s = mod(t, RADIX);
 		// c = t / 10; // Update the carryover
 		c = carryover(t, RADIX);
-		//printf("%d|%d\n", s, c);
+		//printf("%d|%d|%d\n", t, s, c);
 
 		// Append s to the sum
 		sum = append(sum, s);
@@ -357,6 +362,9 @@ List * add(List * a, List * b) {
 	if(c) {
 		sum = append(sum, c);
 	}
+
+	//update signsum
+	sum->data *= signsum;
 
 	return sum;
 }
@@ -427,6 +435,7 @@ List * mult(List * a, List * b) {
 	}
 
 	// Set if positive or negative (NONE YET)
+	if((a->data < 0) ^ (b->data < 0)) product->data *= -1;
 	return product;
 }
 
@@ -478,27 +487,23 @@ List * base27to10(List * a) {
 // O(pretty fucking big)
 // Takes in e and phin s.t. e*x + phin*y = 1, returns x
 List * extendedEuclidean(List * e, List * phin) {
-	
+
 }
 
 void test() {
 	// WORKS: Reading numbers, addition, subtraction (wrong on sign)
 	FILE * ftest = fopen("test.txt", "r");
 	List * a = NULL;
-	List * b = NULL;
 	List * c = NULL;
 	while(!feof(ftest)) {
 		a = init();
-		b = init();
-		ftest = readNumber(ftest, a);
-		ftest = readNumber(ftest, b);
+		ftest = readMessage(ftest, a);
+		printMessage(a);
 		printNumberCorrect(a);
-		printNumberCorrect(b);
-		c = add(a,b);
+		c = base27to10(a);
 		printf("c = ");
 		printNumberCorrect(c);
 		a = freeList(a);
-		b = freeList(b);
 		c = freeList(c);
 	}
 	fclose(ftest);
