@@ -89,6 +89,7 @@ List * intToList(int n) {
 
 // O(n)
 List * freeList(List * list) {
+	if(list == NULL) return NULL;
 	List * ptr = list->next;
 	List * head = list;
 	list = ptr;
@@ -151,6 +152,16 @@ FILE * readNumber(FILE * fin, List * list) {
 	}
 	//printf("|%d|\n", radix);
 
+	// A 1000 | n number won't be read anyway; remove trailing zeroes (right)
+	List * retnode = list->next;
+	while(retnode->data == 0) {
+		list->next = retnode->next;
+		list->next->prev = list;
+		free(retnode);
+		retnode = list->next;
+		list->data -= 1;
+	}
+
 	// Shift the digits if necessary
 	radix *= 10;
 	if(radix>0 && radix<RADIX) {
@@ -167,6 +178,16 @@ FILE * readNumber(FILE * fin, List * list) {
 			shiftee = 0;
 		}
 	}
+
+	// Remove trailing zeroes (left)
+	retnode = list->prev;
+	while(retnode->data == 0) {
+		list->prev = retnode->prev;
+		list->prev->next = list;
+		free(retnode);
+		retnode = list->prev;
+		list->data -= 1;
+	}
 	return fin;
 }
 
@@ -175,6 +196,7 @@ FILE * readMessage(FILE * fin, List * list) {
 	int stream = -1;
 	stream = fgetc(fin);
 	while(stream != 116 && stream != 10 && stream != 102) { //116: t; 10: \n
+		if(feof(fin)) break;
 		if(stream > 64 && stream < 91) {
 			stream -= 65;
 		} else if(stream == 32) {
@@ -211,17 +233,18 @@ void printNumber(List * num) {
 void printNumberCorrect(List * num) {
 	List * tail = num->prev;
 	if(num == tail) {
-		printf("0\n");
+		printf("%d::0\n", num->data);
 		return;
 	}
 
 	List * tailptr = tail;
+	printf("%d::", num->data);
 	// Print negative
 	if(num->data < 0) printf("-");
 	while(tailptr != num) {
 		// Print zero padding
-		if(tailptr != tail) printf("%03d,", tailptr->data);
-		else printf("%d,", tailptr->data);
+		if(tailptr != tail) printf("%03d", tailptr->data);
+		else printf("%d", tailptr->data);
 		tailptr = tailptr->prev;
 	}
 	printf("\n");
@@ -366,6 +389,17 @@ List * add(List * a, List * b) {
 	//update signsum
 	sum->data *= signsum;
 
+	// Trailing zeroes
+	List * retnode = sum->prev;
+	while(retnode->data == 0 && retnode != sum) {
+		sum->prev = retnode->prev;
+		sum->prev->next = sum;
+		free(retnode);
+		retnode = sum->prev;
+		if(sum->data > 0) sum->data -= 1;
+		else sum->data += 1;
+	}
+
 	return sum;
 }
 
@@ -487,11 +521,46 @@ List * base27to10(List * a) {
 // O(pretty fucking big)
 // Takes in e and phin s.t. e*x + phin*y = 1, returns x
 List * extendedEuclidean(List * e, List * phin) {
+	List * r = e;
+	List * rnext = phin;
+	List * rtrans = rnext;
+	List * s = intToList(1);
+	List * snext = intToList(0);
+	List * strans = snext;
+	List * zero = intToList(0);
+	printf("snext: ");
+	printNumberCorrect(snext);
+	List * rret = r;
+	List * sret = s;
+	//try doing 50 iters first
+	int ctr = 50;
+	while(ctr > 0) {
+		rret = r;
+		rtrans = rnext;
+		// Subtract the bigger one?
+		if(compare(r,rtrans) > 0) rnext = sub(r, rtrans);
+		else rnext = sub(rtrans, r);
+		r = rtrans;
+		if(rret != e && rret != phin) freeList(rret);
 
+		sret = s;
+		strans = snext;
+		snext = sub(s, strans);
+		s = strans;
+		freeList(sret);
+		printf("/iter\n");
+		printNumberCorrect(snext);
+		printNumberCorrect(rnext);
+		printf("iter\\\n");
+		ctr--;
+	}
+	printNumberCorrect(r);
+	printNumberCorrect(s);
 }
 
 void test() {
-	// WORKS: Reading numbers, addition, subtraction (wrong on sign)
+	// WORKS: Reading numbers, addition, subtraction, multiplication (?)
+	// 27 to 10
 	FILE * ftest = fopen("test.txt", "r");
 	List * a = NULL;
 	List * c = NULL;
@@ -512,12 +581,12 @@ void test() {
 
 void main() {
 	// testing realm
-	test();
-	return;
+	//test();
+	//return;
 	// Declarations
 	FILE * fin;
 	FILE * fout;
-	fin = fopen("testinput.txt", "r");
+	fin = fopen("test.txt", "r");
 	fout = fopen("201508086.txt", "w");
 
 	char filler[FILLER_SIZE]; //Stores the useless text (eg. Alice / Bob / etc.)
@@ -549,12 +618,13 @@ void main() {
 			pmo = freeList(pmo);
 			qmo = freeList(qmo);
 			n = freeList(n);
+			phin = freeList(phin);
 			p = init();
 			q = init();
 			e = init();
-			pmo = init();
-			qmo = init();
-			n = init();
+			//pmo = init();
+			//qmo = init();
+			//n = init();
 
 			// Parse p,q,e
 			fin = readNumber(fin, p);
@@ -568,14 +638,12 @@ void main() {
 			printNumberCorrect(e);
 
 			//Check if the addition fxn is working
-			/*
 			porq = add(p,q);
-			printNumber(porq);
+			printNumberCorrect(porq);
 			freeList(porq);
-			pandq = mult(p,q);
-			printNumber(pandq);
+			pandq = sub(p,q);
+			printNumberCorrect(pandq);
 			freeList(pandq);
-			*/
 
 			// Get n
 			n = mult(p,q);

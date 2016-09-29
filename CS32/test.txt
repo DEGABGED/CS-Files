@@ -1,0 +1,13 @@
+CASE 1
+12345, 5423
+449
+Alice will send the message: HELLO WORLD to Bob
+CASE 2
+123467, 9191919
+3331
+Alice will send the message: FROOT LOOPS to Bob
+CASE 3
+1924533, 1924533
+11111
+Alice will send the message: FUCKING HELL to Bob
+END
