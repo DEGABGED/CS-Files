@@ -72,6 +72,16 @@ List * append(List * list, int data) {
 	return list;
 }
 
+// Delete end removes least significant digits (opposite of prepend)
+List * deleteRight(List * list) {
+	List * retnode = list->next;
+	list->next = retnode->next;
+	list->next->prev = list;
+	free(retnode);
+	list->data -= 1;
+	return list;
+}
+
 // O(e), e = number of digits of n
 // radix is 1,000,000,000
 List * intToList(int n) {
@@ -85,6 +95,18 @@ List * intToList(int n) {
 		n = n / RADIX; // Remainder
 	}
 	return output;
+}
+
+// Duplicate list
+// UNTESTED !!!!!!!!!!
+List * duplicate(List * n) {
+	List * new = init();
+	List * ptr = n->next;
+	while(ptr != n) {
+		new = append(new, ptr->data);
+		ptr = ptr->next;
+	}
+	return new;
 }
 
 // O(n)
@@ -106,6 +128,7 @@ FILE * readFiller(FILE * fin, char * str) {
 	int ndx = 0;
 	str[ndx] = (char) fgetc(fin);
 	while(ndx < FILLER_SIZE) {
+		if(feof(fin)) break;
 		ndx++;
 		str[ndx] = (char) fgetc(fin);
 		if(str[ndx] == ':') {
@@ -127,7 +150,8 @@ FILE * readNumber(FILE * fin, List * list) {
 	int numstream = -1;
 	int radixstream = 0;
 	int radix = RADIX / 10;
-	while(stream[0] != ',' && stream[0] != '\n') {
+	while(!feof(fin) && stream[0] != ',' && stream[0] != '\n') {
+		if(feof(fin)) break;
 		// Reset values
 		radixstream = 0;
 		radix = RADIX/10;
@@ -482,6 +506,22 @@ List * sub(List * a, List * b) {
 	return amb;
 }
 
+// Computes "bitshifting" (-n implies to right, vv.)
+List * shift(List * a, int n) {
+	// If shifting to the left (* RADIX)
+	while(n > 0) {
+		a = prepend(a, 0);
+		n--;
+	}
+	// If shifting to the right (/ RADIX)
+	while(n < 0) {
+		// Delete least significant digits
+		a = deleteRight(a);
+		n++;
+	}
+	return a;
+}
+
 List * base10to27(List * a) {
 	// None yet
 }
@@ -558,21 +598,129 @@ List * extendedEuclidean(List * e, List * phin) {
 	printNumberCorrect(s);
 }
 
+// O(mygod)
+// Finds estimate for reciprocal of d times b^2e
+List * NewtonRhapson(List * d, int two_e) {
+	// Generate x0 first
+	int power_x0 = d->data;
+	if(power_x0 > 0) power_x0 *= -1;
+	power_x0 += two_e;
+	power_x0 -= 1;
+	List * x0 = intToList(1);
+	x0 = shift(x0, power_x0);
+	List * two_b2e = intToList(2);
+	two_b2e = shift(two_b2e, two_e);
+
+	// Declare delta_x and other list items
+	List * x = NULL;
+	List * delta_x = intToList(1);
+	List * deltaret = delta_x;
+	List * dx0 = NULL;
+	List * x0prod = NULL;
+	List * x0ret = x0;
+	/*printf("precond: (%d:powerx0)", power_x0);
+	printNumberCorrect(x0);
+	printNumberCorrect(two_b2e);*/
+
+	while(delta_x->data != 0) {
+		dx0 = mult(d, x0); // d * x0
+		x0prod = sub(two_b2e, dx0); // 2b^2e - dx0
+		x = mult(x0, x0prod); // x0 * etc.
+		/*printf("b4shift: ");
+		printNumberCorrect(x);*/
+		x = shift(x, -1*two_e); // div by b^2e
+		delta_x = sub(x, x0);
+		/*printf("iterx: ");
+		printNumberCorrect(x);*/
+
+		// reset the lists
+		x0 = x; // Move x0 up the sequence. as of now x and x0 are same
+		freeList(dx0);
+		freeList(x0prod);
+		freeList(x0ret);
+		freeList(deltaret);
+		x0ret = x0; //Prepare for freeing
+		deltaret = delta_x;
+	}
+
+	// return x
+	freeList(delta_x);
+	freeList(two_b2e);
+	return x;
+}
+
+//O(tanginang froot loops)
+// Returns r = x mod m
+// Does Barrett Reduction if necessarcy
+// NEEDS: NewtonRhapson, shift
+List * modulus(List * x, List * m) {
+	if(compare(m, x) >= 0) return x; // If x < m
+	// Get k
+	int k = m->data;
+	if(k<0) k*=-1;
+
+	// Get mu
+	int two_k = k * 2;
+	List * mu = NewtonRhapson(m, two_k);
+
+	// Instantiate q1, q2, q3, etc.
+	List * q1 = duplicate(x);
+	q1 = shift(q1, -1*(k-1));
+	List * q3 = mult(q1, mu);
+	q3 = shift(q3, -1*(k+1));
+	/*printf("\nq1: ");
+	printNumberCorrect(q1);
+	printf("\nq3: ");
+	printNumberCorrect(q3);
+	printf("\nmu: ");
+	printNumberCorrect(mu);*/
+	freeList(q1);
+	freeList(mu);
+
+	List * r1 = x; // RADIX MODULO to be implemented
+	List * r2 = mult(q3, m);
+	List * r3 = sub(r1, r2);
+	/*printf("\nr1: ");
+	printNumberCorrect(r1);
+	printf("\nr2 ");
+	printNumberCorrect(r2);
+	printf("\nr3: ");
+	printNumberCorrect(r3);*/
+	freeList(r1);
+	freeList(r2);
+	freeList(q3);
+
+	return r3;
+}
+
 void test() {
 	// WORKS: Reading numbers, addition, subtraction, multiplication (?)
 	// 27 to 10
 	FILE * ftest = fopen("test.txt", "r");
 	List * a = NULL;
+	List * b = NULL;
 	List * c = NULL;
+	List * d = NULL;
 	while(!feof(ftest)) {
 		a = init();
-		ftest = readMessage(ftest, a);
-		printMessage(a);
+		d = init();
+		if(feof(ftest)) break;
+		ftest = readNumber(ftest, d);
+		printf("d = ");
+		printNumberCorrect(d);
+		ftest = readNumber(ftest, a);
+		printf("a = ");
 		printNumberCorrect(a);
-		c = base27to10(a);
+		int twoe = 2*(a->data);
+		if(twoe <0) twoe*=-1;
+		b = NewtonRhapson(a, twoe);
+		printf("b = ");
+		printNumberCorrect(b);
+		c = modulus(d, a);
 		printf("c = ");
 		printNumberCorrect(c);
 		a = freeList(a);
+		b = freeList(b);
 		c = freeList(c);
 	}
 	fclose(ftest);
@@ -581,8 +729,8 @@ void test() {
 
 void main() {
 	// testing realm
-	//test();
-	//return;
+	test();
+	return;
 	// Declarations
 	FILE * fin;
 	FILE * fout;
