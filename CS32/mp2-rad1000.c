@@ -664,7 +664,7 @@ List * radixModulo(List * x, int power_m) {
 // Does Barrett Reduction if necessarcy
 // NEEDS: NewtonRhapson, shift
 // BARRETTS ONLY WORKS FOR x < m^2 TAKE NOTE OF THIS
-List * modulus(List * x, List * m) {
+List * modulus(List * x, List * m, List * mu) {
 	if(x->data < 0) {
 		List * xnew = x;
 		List * xret = x;
@@ -679,10 +679,12 @@ List * modulus(List * x, List * m) {
 	// Get k
 	int k = m->data;
 	if(k<0) k*=-1;
+	int two_k = k * 2;
 
 	// Get mu
-	int two_k = k * 2;
-	List * mu = NewtonRhapson(m, two_k);
+	if(mu == NULL) {
+		mu = NewtonRhapson(m, two_k);
+	}
 
 	// Instantiate q1, q2, q3, etc.
 	List * q1 = duplicate(x);
@@ -771,6 +773,77 @@ List * extendedEuclidean(List * e, List * phin) {
 		printf("YOU JUST GOT Z E E ' D\n");
 		return init(); // Or null?
 	}
+}
+
+// O(gadududu push pineapple shake the tree)
+// MONTGOMERY FUNCTIONS
+// Precompute ModInv of R mod m
+List * modInvOfR(List * m) {
+	int power_r = m->data;
+	if(power_r < 0) power_r *= -1;
+	List * R = intToList(1);
+	R = shift(R, power_r);
+	List * Rinv = extendedEuclidean(R, m);
+	freeList(R);
+	return Rinv;
+}
+
+List * modInvOfMO(List * m) {
+	if(m->data == 0) return NULL;
+	List * m0 = intToList(m->next->data);
+	List * B = intToList(RADIX);
+	List * m0_modinv = extendedEuclidean(m0, B);
+	m0_modinv->data *= -1;
+	List * m0_modinvmod = modulus(m0_modinv, B);
+	return m0_modinvmod;
+}
+
+List * changeToMontgo(List * x, List * m, List * MU) {
+	int power_r = m->data;
+	if(power_r < 0) power_r *= -1;
+	List * R = intToList(1);
+	R = shift(R, power_r);
+	List * Rmod = sub(R, m);
+	List * product = mult(x, Rmod);
+	List * productmod = modulus(product, m, MU);
+	freeList(R);
+	freeList(Rmod);
+	freeList(product);
+	return productmod;
+}
+
+List * changeFromMontgo(List * x, List * m, List * MU, List * RINV) {
+	List * product = mult(x, RINV);
+	List * productmod = modulus(product, m, MU);
+	return productmod;
+}
+
+List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) {
+	List * productl = mult(xl, yl);
+	List * productl_digit = NULL;
+	List * ptr = productl->next;
+	List * k = NULL;
+	List * mk = NULL;
+	List * kmod = NULL;
+	List * productlret = NULL;
+	for(int pr = power_r; pr >0; pr--) {
+		productlret = productl;
+		productl_digit = intToList(ptr->data);
+		k = mult(productl_digit, m0_recip);
+		kmod = radixModulo(k, 1);
+		mk = mult(m, kmod);
+		productl = add(productlret, mk);
+
+		//free
+		freeList(productlret);
+		freeList(k);
+		freeList(kmod);
+		freeList(mk);
+		freeList(productl_digit);
+	}
+
+	productl = shift(productl, -1*power_r);
+	return productl;
 }
 
 void test() {
