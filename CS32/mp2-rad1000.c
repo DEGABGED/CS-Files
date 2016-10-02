@@ -265,7 +265,7 @@ void printNumberCorrect(List * num) {
 	}
 
 	List * tailptr = tail;
-	printf("%d::", num->data);
+	//printf("%d::", num->data);
 	// Print negative
 	if(num->data < 0) printf("-");
 	while(tailptr != num) {
@@ -433,6 +433,8 @@ List * add(List * a, List * b) {
 // Computes AB (might be inefficient; can be optimized later)
 // O(n^2), n being the number of digits of a and b
 List * mult(List * a, List * b) {
+	// If one of them is 0
+	if(a->data == 0 || b->data == 0) return init();
 	// Worry about signs and combing out the product later
 	int p = 0; // Product of digits mod 10
 	int t = 0; // Product of digits
@@ -586,18 +588,20 @@ List * NewtonRhapson(List * d, int two_e) {
 	/*printf("precond: (%d:powerx0) ", power_x0);
 	printNumberCorrect(x0);
 	printf("2*b^2e: ");
-	printNumberCorrect(two_b2e);*/
+	printNumberCorrect(two_b2e);
+	printf("denom: ");
+	printNumberCorrect(d);*/
 
 	while(delta_x->data != 0) {
 		dx0 = mult(d, x0); // d * x0
 		x0prod = sub(two_b2e, dx0); // 2b^2e - dx0
 		x = mult(x0, x0prod); // x0 * etc.
-		/*printf("b4shift: ");
-		printNumberCorrect(x);*/
+		//printf("b4shift: ");
+		//printNumberCorrect(x);
 		x = shift(x, -1*two_e); // div by b^2e
 		delta_x = sub(x, x0);
-		/*printf("iterx: ");
-		printNumberCorrect(x);*/
+		//printf("iterx: ");
+		//printNumberCorrect(x);
 
 		// reset the lists
 		x0 = x; // Move x0 up the sequence. as of now x and x0 are same
@@ -619,18 +623,25 @@ List * NewtonRhapson(List * d, int two_e) {
 // Computes [a/b] with NewtonRhapson
 List * divide(List * a, List * b) {
 	int bprec = a->data; // P R E C I S I O N
+	List * hack = intToList(10);
+	List * hack_b_recip = NULL;
 	if(bprec < 0) bprec *= -1;
 	int k = bprec + 1; // Muh precision
 	int two_k = k*2; // Gimme that sweet sweet P R E C I S I O N
 	List * b_recip = NewtonRhapson(b, two_k);
-	printf("100../b = ");
-	printNumberCorrect(b_recip);
+	// WARNING: HACK
+	hack_b_recip = b_recip;
+	b_recip = add(hack_b_recip, hack);
+	//printf("100../b = ");
+	//printNumberCorrect(b_recip);
 	List * adivb = mult(a, b_recip);
-	printf("a*100../b = ");
-	printNumberCorrect(adivb);
+	//printf("a*100../b = ");
+	//printNumberCorrect(adivb);
 	//printf("precision of revert: %d\n", two_k-bprec);
 	adivb = shift(adivb, -1*two_k);
 	freeList(b_recip);
+	freeList(hack);
+	freeList(hack_b_recip);
 	return adivb;
 }
 
@@ -692,6 +703,7 @@ List * modulus(List * x, List * m) {
 
 // O(pretty fucking big)
 // Takes in e and phin s.t. e*x + phin*y = 1, returns x
+// TOO LAZY TO TEST NEWFOUND HACK FOR DIV PRECISION AHAHAHAHA
 List * extendedEuclidean(List * e, List * phin) {
 	List * t = intToList(0);
 	List * newt = intToList(1);
@@ -702,8 +714,9 @@ List * extendedEuclidean(List * e, List * phin) {
 	List * q = NULL;
 	List * qt = NULL;
 	List * qr = NULL;
-	while(newr != 0) {
+	while(newr->data != 0) {
 		// Prepare for freeing
+		freeList(q);
 		rret = r;
 		tret = t;
 
@@ -714,12 +727,11 @@ List * extendedEuclidean(List * e, List * phin) {
 		newt = sub(tret, qt);
 		r = newr;
 		qr = mult(q, newr);
-		newt = sub(rret, qr);
+		newr = sub(rret, qr);
 
 		// Free
 		freeList(rret);
 		freeList(tret);
-		freeList(q);
 		freeList(qr);
 		freeList(qt);
 	}
@@ -733,6 +745,7 @@ List * extendedEuclidean(List * e, List * phin) {
 
 void test() {
 	// WORKS: Reading numbers, addition, subtraction, multiplication (?)
+	// Might have bugs: Reciprocation, Division, Modulo (INC)
 	// 27 to 10
 	FILE * ftest = fopen("test.txt", "r");
 	List * a = NULL;
@@ -743,21 +756,27 @@ void test() {
 	while(1) {
 		a = init();
 		b = init();
+		c = init();
 		if(feof(ftest)) break;
 		ftest = readNumber(ftest, a);
-		printf("a = ");
-		printNumberCorrect(a);
+		//printf("a = ");
+		//printNumberCorrect(a);
 		ftest = readNumber(ftest, b);
-		printf("b = ");
-		printNumberCorrect(b);
-		if(a->data == 0 || b->data == 0) break;
-		d = divide(a, b);
-		printf("a div b = ");
+		//printf("b = ");
+		//printNumberCorrect(b);
+		if(a->data == 0) break;
+		
+		c = divide(a,b);
+		d = modulus(a,b);
+		//printf("c = ");
+		printNumberCorrect(c);
+		//printf("d = ");
 		printNumberCorrect(d);
 		a = freeList(a);
 		b = freeList(b);
-		//c = freeList(c);
+		c = freeList(c);
 		d = freeList(d);
+		printf("\n");
 	}
 	fclose(ftest);
 	return;
