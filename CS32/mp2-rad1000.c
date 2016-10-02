@@ -151,14 +151,17 @@ FILE * readNumber(FILE * fin, List * list) {
 	int radixstream = 0;
 	int radix = RADIX / 10;
 	while(!feof(fin) && stream[0] != ',' && stream[0] != '\n') {
-		if(feof(fin)) break;
 		// Reset values
 		radixstream = 0;
 		radix = RADIX/10;
 		// Read the radix-1B number
 		while(radix > 0) {
 			stream[0] = (char) fgetc(fin);
-			if(stream[0] == ',' || stream[0] == '\n' || stream[0] == ' ') break;
+			if(feof(fin)) break;
+			//printf("%s:stream, %d:feof\n", stream, feof(fin));
+			if(stream[0] == ',' || stream[0] == '\n' || stream[0] == ' '){
+				break;
+			}
 			numstream = atoi(stream);
 			if(numstream == 0 && stream[0] != '0') {
 				stream[0] = ',';
@@ -178,7 +181,7 @@ FILE * readNumber(FILE * fin, List * list) {
 
 	// A 1000 | n number won't be read anyway; remove trailing zeroes (right)
 	List * retnode = list->next;
-	while(retnode->data == 0) {
+	while(retnode != list && retnode->data == 0) {
 		list->next = retnode->next;
 		list->next->prev = list;
 		free(retnode);
@@ -205,7 +208,7 @@ FILE * readNumber(FILE * fin, List * list) {
 
 	// Remove trailing zeroes (left)
 	retnode = list->prev;
-	while(retnode->data == 0) {
+	while(retnode != list && retnode->data == 0) {
 		list->prev = retnode->prev;
 		list->prev->next = list;
 		free(retnode);
@@ -605,7 +608,7 @@ List * NewtonRhapson(List * d, int two_e) {
 	int power_x0 = d->data;
 	if(power_x0 > 0) power_x0 *= -1;
 	power_x0 += two_e;
-	power_x0 -= 1;
+	//power_x0 -= 1; // F A U L T Y M A T H
 	List * x0 = intToList(1);
 	x0 = shift(x0, power_x0);
 	List * two_b2e = intToList(2);
@@ -618,9 +621,12 @@ List * NewtonRhapson(List * d, int two_e) {
 	List * dx0 = NULL;
 	List * x0prod = NULL;
 	List * x0ret = x0;
-	/*printf("precond: (%d:powerx0)", power_x0);
+	/*
+	printNumberCorrect(d);
+	printf("precond: (%d:powerx0)\n", power_x0);
 	printNumberCorrect(x0);
-	printNumberCorrect(two_b2e);*/
+	printNumberCorrect(two_b2e);
+	*/
 
 	while(delta_x->data != 0) {
 		dx0 = mult(d, x0); // d * x0
@@ -654,7 +660,7 @@ List * NewtonRhapson(List * d, int two_e) {
 // Does Barrett Reduction if necessarcy
 // NEEDS: NewtonRhapson, shift
 List * modulus(List * x, List * m) {
-	if(compare(m, x) >= 0) return x; // If x < m
+	if(compare(m, x) >= 0) return duplicate(x); // If x < m
 	// Get k
 	int k = m->data;
 	if(k<0) k*=-1;
@@ -668,19 +674,30 @@ List * modulus(List * x, List * m) {
 	q1 = shift(q1, -1*(k-1));
 	List * q3 = mult(q1, mu);
 	q3 = shift(q3, -1*(k+1));
-	/*printf("\nq1: ");
+	/*
+	printf("\nq1: ");
 	printNumberCorrect(q1);
 	printf("\nq3: ");
 	printNumberCorrect(q3);
 	printf("\nmu: ");
-	printNumberCorrect(mu);*/
+	printNumberCorrect(mu);
+	printf("\nm: ");
+	printNumberCorrect(m);
+	*/
 	freeList(q1);
 	freeList(mu);
 
-	List * r1 = x; // RADIX MODULO to be implemented
+	List * r1 = duplicate(x); // RADIX MODULO to be implemented
 	List * r2 = mult(q3, m);
+	/*
+	printf("\nr1: ");
+	printNumberCorrect(r1);
+	printf("\nr2 ");
+	printNumberCorrect(r2);
+	*/
 	List * r3 = sub(r1, r2);
-	/*printf("\nr1: ");
+	/*
+	printf("\nr1: ");
 	printNumberCorrect(r1);
 	printf("\nr2 ");
 	printNumberCorrect(r2);
@@ -701,27 +718,30 @@ void test() {
 	List * b = NULL;
 	List * c = NULL;
 	List * d = NULL;
-	while(!feof(ftest)) {
+	int twoe = 0;
+	while(1) {
 		a = init();
-		d = init();
+		b = init();
 		if(feof(ftest)) break;
-		ftest = readNumber(ftest, d);
-		printf("d = ");
-		printNumberCorrect(d);
 		ftest = readNumber(ftest, a);
 		printf("a = ");
 		printNumberCorrect(a);
-		int twoe = 2*(a->data);
-		if(twoe <0) twoe*=-1;
-		b = NewtonRhapson(a, twoe);
+		ftest = readNumber(ftest, b);
 		printf("b = ");
 		printNumberCorrect(b);
-		c = modulus(d, a);
-		printf("c = ");
+		if(a->data == 0 || b->data == 0) break;
+		twoe = 2*(b->data);
+		if(twoe <0) twoe*=-1;
+		c = NewtonRhapson(b, twoe);
+		printf("100../b = ");
 		printNumberCorrect(c);
+		d = modulus(a, b);
+		printf("a mod b = ");
+		printNumberCorrect(d);
 		a = freeList(a);
 		b = freeList(b);
 		c = freeList(c);
+		d = freeList(d);
 	}
 	fclose(ftest);
 	return;
