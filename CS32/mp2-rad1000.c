@@ -645,12 +645,36 @@ List * divide(List * a, List * b) {
 	return adivb;
 }
 
+// O(hno)
+// Does modulo but in radix
+List * radixModulo(List * x, int power_m) {
+	// Basically preserve the power_m least significant digits
+	List * ptr = x->next;
+	List * output = init();
+	while(ptr != x && power_m > 0) {
+		output = append(output, ptr->data);
+		ptr = ptr->next;
+		power_m--;
+	}
+	return output;
+}
+
 //O(tanginang froot loops)
 // Returns r = x mod m
 // Does Barrett Reduction if necessarcy
 // NEEDS: NewtonRhapson, shift
-// BARRETTS ONLY WORKS FOR x < m^2
+// BARRETTS ONLY WORKS FOR x < m^2 TAKE NOTE OF THIS
 List * modulus(List * x, List * m) {
+	if(x->data < 0) {
+		List * xnew = x;
+		List * xret = x;
+		while(xnew->data < 0) {
+			xnew = add(xnew,m);
+			if(xret != x)freeList(xret);
+			xret = xnew;
+		}
+		return xnew;
+	}
 	if(compare(m, x) >= 0) return duplicate(x); // If x < m
 	// Get k
 	int k = m->data;
@@ -678,7 +702,7 @@ List * modulus(List * x, List * m) {
 	freeList(q1);
 	freeList(mu);
 
-	List * r1 = duplicate(x); // RADIX MODULO to be implemented
+	List * r1 = radixModulo(x, k+1);
 	List * r2 = mult(q3, m);
 	/*
 	printf("\nr1: ");
@@ -736,10 +760,16 @@ List * extendedEuclidean(List * e, List * phin) {
 		freeList(qt);
 	}
 	if(r->data == 1 && r->next->data == 1) {
+		// Make t positive
+		while(t->data < 0) {
+			tret = t;
+			t = add(tret, phin);
+			freeList(tret);
+		}
 		return t;
 	} else {
 		printf("YOU JUST GOT Z E E ' D\n");
-		return init();
+		return init(); // Or null?
 	}
 }
 
@@ -752,6 +782,10 @@ void test() {
 	List * b = NULL;
 	List * c = NULL;
 	List * d = NULL;
+	List * pm1 = NULL;
+	List * qm1 = NULL;
+	List * phin = NULL;
+	List * one = intToList(1);
 	int twoe = 0;
 	while(1) {
 		a = init();
@@ -759,23 +793,25 @@ void test() {
 		c = init();
 		if(feof(ftest)) break;
 		ftest = readNumber(ftest, a);
-		//printf("a = ");
-		//printNumberCorrect(a);
-		ftest = readNumber(ftest, b);
-		//printf("b = ");
-		//printNumberCorrect(b);
 		if(a->data == 0) break;
-		
-		c = divide(a,b);
-		d = modulus(a,b);
+		ftest = readNumber(ftest, b);
+		if(b->data == 0) break;
+		ftest = readNumber(ftest, c);
+		pm1 = sub(a, one);
+		qm1 = sub(b, one);
+		phin = mult(pm1, qm1);
+		d = extendedEuclidean(c,phin);
 		//printf("c = ");
 		printNumberCorrect(c);
 		//printf("d = ");
-		printNumberCorrect(d);
+		if(d!=NULL) printNumberCorrect(d);
 		a = freeList(a);
 		b = freeList(b);
 		c = freeList(c);
 		d = freeList(d);
+		freeList(pm1);
+		freeList(qm1);
+		freeList(phin);
 		printf("\n");
 	}
 	fclose(ftest);
