@@ -561,48 +561,9 @@ List * base27to10(List * a) {
 	return output;
 }
 
-// O(pretty fucking big)
-// Takes in e and phin s.t. e*x + phin*y = 1, returns x
-List * extendedEuclidean(List * e, List * phin) {
-	List * r = e;
-	List * rnext = phin;
-	List * rtrans = rnext;
-	List * s = intToList(1);
-	List * snext = intToList(0);
-	List * strans = snext;
-	List * zero = intToList(0);
-	printf("snext: ");
-	printNumberCorrect(snext);
-	List * rret = r;
-	List * sret = s;
-	//try doing 50 iters first
-	int ctr = 50;
-	while(ctr > 0) {
-		rret = r;
-		rtrans = rnext;
-		// Subtract the bigger one?
-		if(compare(r,rtrans) > 0) rnext = sub(r, rtrans);
-		else rnext = sub(rtrans, r);
-		r = rtrans;
-		if(rret != e && rret != phin) freeList(rret);
-
-		sret = s;
-		strans = snext;
-		snext = sub(s, strans);
-		s = strans;
-		freeList(sret);
-		printf("/iter\n");
-		printNumberCorrect(snext);
-		printNumberCorrect(rnext);
-		printf("iter\\\n");
-		ctr--;
-	}
-	printNumberCorrect(r);
-	printNumberCorrect(s);
-}
-
 // O(mygod)
 // Finds estimate for reciprocal of d times b^2e
+// NOTE: in modulus and div, the "exponent" is actually 2(e+1) because of indexing
 List * NewtonRhapson(List * d, int two_e) {
 	// Generate x0 first
 	int power_x0 = d->data;
@@ -613,6 +574,7 @@ List * NewtonRhapson(List * d, int two_e) {
 	x0 = shift(x0, power_x0);
 	List * two_b2e = intToList(2);
 	two_b2e = shift(two_b2e, two_e);
+	//printf("precision of recip: %d\n", power_x0);
 
 	// Declare delta_x and other list items
 	List * x = NULL;
@@ -621,12 +583,10 @@ List * NewtonRhapson(List * d, int two_e) {
 	List * dx0 = NULL;
 	List * x0prod = NULL;
 	List * x0ret = x0;
-	/*
-	printNumberCorrect(d);
-	printf("precond: (%d:powerx0)\n", power_x0);
+	/*printf("precond: (%d:powerx0) ", power_x0);
 	printNumberCorrect(x0);
-	printNumberCorrect(two_b2e);
-	*/
+	printf("2*b^2e: ");
+	printNumberCorrect(two_b2e);*/
 
 	while(delta_x->data != 0) {
 		dx0 = mult(d, x0); // d * x0
@@ -655,10 +615,30 @@ List * NewtonRhapson(List * d, int two_e) {
 	return x;
 }
 
+// O()
+// Computes [a/b] with NewtonRhapson
+List * divide(List * a, List * b) {
+	int bprec = a->data; // P R E C I S I O N
+	if(bprec < 0) bprec *= -1;
+	int k = bprec + 1; // Muh precision
+	int two_k = k*2; // Gimme that sweet sweet P R E C I S I O N
+	List * b_recip = NewtonRhapson(b, two_k);
+	printf("100../b = ");
+	printNumberCorrect(b_recip);
+	List * adivb = mult(a, b_recip);
+	printf("a*100../b = ");
+	printNumberCorrect(adivb);
+	//printf("precision of revert: %d\n", two_k-bprec);
+	adivb = shift(adivb, -1*two_k);
+	freeList(b_recip);
+	return adivb;
+}
+
 //O(tanginang froot loops)
 // Returns r = x mod m
 // Does Barrett Reduction if necessarcy
 // NEEDS: NewtonRhapson, shift
+// BARRETTS ONLY WORKS FOR x < m^2
 List * modulus(List * x, List * m) {
 	if(compare(m, x) >= 0) return duplicate(x); // If x < m
 	// Get k
@@ -710,6 +690,47 @@ List * modulus(List * x, List * m) {
 	return r3;
 }
 
+// O(pretty fucking big)
+// Takes in e and phin s.t. e*x + phin*y = 1, returns x
+List * extendedEuclidean(List * e, List * phin) {
+	List * t = intToList(0);
+	List * newt = intToList(1);
+	List * tret = t;
+	List  * r = duplicate(phin);
+	List * newr = duplicate(e);
+	List * rret = r;
+	List * q = NULL;
+	List * qt = NULL;
+	List * qr = NULL;
+	while(newr != 0) {
+		// Prepare for freeing
+		rret = r;
+		tret = t;
+
+		// Do math
+		q = divide(r, newr);
+		t = newt;
+		qt = mult(q, newt);
+		newt = sub(tret, qt);
+		r = newr;
+		qr = mult(q, newr);
+		newt = sub(rret, qr);
+
+		// Free
+		freeList(rret);
+		freeList(tret);
+		freeList(q);
+		freeList(qr);
+		freeList(qt);
+	}
+	if(r->data == 1 && r->next->data == 1) {
+		return t;
+	} else {
+		printf("YOU JUST GOT Z E E ' D\n");
+		return init();
+	}
+}
+
 void test() {
 	// WORKS: Reading numbers, addition, subtraction, multiplication (?)
 	// 27 to 10
@@ -730,17 +751,12 @@ void test() {
 		printf("b = ");
 		printNumberCorrect(b);
 		if(a->data == 0 || b->data == 0) break;
-		twoe = 2*(b->data);
-		if(twoe <0) twoe*=-1;
-		c = NewtonRhapson(b, twoe);
-		printf("100../b = ");
-		printNumberCorrect(c);
-		d = modulus(a, b);
-		printf("a mod b = ");
+		d = divide(a, b);
+		printf("a div b = ");
 		printNumberCorrect(d);
 		a = freeList(a);
 		b = freeList(b);
-		c = freeList(c);
+		//c = freeList(c);
 		d = freeList(d);
 	}
 	fclose(ftest);
