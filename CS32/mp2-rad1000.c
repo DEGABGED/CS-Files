@@ -537,6 +537,17 @@ List * shift(List * a, int n) {
 
 List * base10to27(List * a) {
 	// None yet
+	// Precomputeds
+	List * base = intToList(27);
+	int k = a->data;
+	if(k<0) k*=-1;
+	k = 2*(k+1);
+	List * base_recip = NewtonRhapson(base, k);
+	List * output = init();
+
+	while(a->data != 0) {
+		
+	}
 }
 
 // Might be a bottleneck
@@ -563,6 +574,7 @@ List * base27to10(List * a) {
 		oldpower = powerb;
 		digita = digita->next; // Get the next digit
 
+		freeList(tempout);
 		freeList(hpdigita);
 	}
 
@@ -648,19 +660,36 @@ List * divide(List * a, List * b, List * b_recip, int two_k_out) {
 		two_k = two_k_out;
 		deletThis = 0;
 	}
-	printf("100../b = ");
-	printNumberCorrect(b_recip);
+	//printf("100../b = ");
+	//printNumberCorrect(b_recip);
 	List * adivb = mult(a, b_recip);
-	printf("a*100../b = ");
-	printNumberCorrect(adivb);
-	printf("precision of revert: %d\n", two_k-bprec);
-	printf("adivb? (%d) ", two_k);
-	printNumberCorrect(adivb);
+	//printf("a*100../b = ");
+	//printNumberCorrect(adivb);
+	//printf("precision of revert: %d\n", two_k-bprec);
+	//printf("adivb? (%d) ", two_k);
+	//printNumberCorrect(adivb);
 	adivb = shift(adivb, -1*two_k);
 	if(deletThis) freeList(b_recip);
 	freeList(hack);
 	freeList(hack_b_recip);
 	return adivb;
+}
+
+// O()O
+// Does modulo for when barrett can't
+List * modulus_alt(List * x, List * m, List * q) {
+	// x = qm + r; q = [x/m]
+	// r = x - qm;
+	int deletThis = 0;
+	if(q == NULL) {
+		List * q = divide(x,m,NULL,0);
+		deletThis = 1;
+	}
+	List * qm = mult(q,m);
+	List * r = sub(x,qm);
+	if(deletThis) freeList(q);
+	freeList(qm);
+	return r;
 }
 
 // O(hno)
@@ -695,6 +724,11 @@ List * modulus(List * x, List * m, List * mu) {
 		return xnew;
 	}
 	if(compare(m, x) >= 0) return duplicate(x); // If x < m
+	if(x->data >= 2*(m->data)-1) {
+		//printf("bro you just got Z E E ' D\n");
+		List * output = modulus_alt(x, m, NULL);
+		return output;
+	}
 	// Get k
 	int k = m->data;
 	if(k<0) k*=-1;
@@ -711,16 +745,14 @@ List * modulus(List * x, List * m, List * mu) {
 	q1 = shift(q1, -1*(k-1));
 	List * q3 = mult(q1, mu);
 	q3 = shift(q3, -1*(k+1));
-	/*
-	printf("\nq1: ");
-	printNumberCorrect(q1);
-	printf("\nq3: ");
-	printNumberCorrect(q3);
-	printf("\nmu: ");
-	printNumberCorrect(mu);
-	printf("\nm: ");
-	printNumberCorrect(m);
-	*/
+	//printf("\nq1: ");
+	//printNumberCorrect(q1);
+	//printf("\nq3: ");
+	//printNumberCorrect(q3);
+	//printf("\nmu: ");
+	//printNumberCorrect(mu);
+	//printf("\nm: ");
+	//printNumberCorrect(m);
 	freeList(q1);
 	if(deletThis) freeList(mu);
 
@@ -733,17 +765,21 @@ List * modulus(List * x, List * m, List * mu) {
 	printNumberCorrect(r2);*/
 
 	List * r3 = sub(r1, r2);
-	/*
-	printf("\nr1: ");
-	printNumberCorrect(r1);
-	printf("\nr2 ");
-	printNumberCorrect(r2);
-	printf("\nr3: ");
-	printNumberCorrect(r3);
-	*/
+	//printf("\nr1: ");
+	//printNumberCorrect(r1);
+	//printf("\nr2 ");
+	//printNumberCorrect(r2);
+	//printf("\nr3: ");
+	//printNumberCorrect(r3);
 	freeList(r1);
 	freeList(r2);
 	freeList(q3);
+	if(r3->data < 0) {
+		// This shouldn't happen lol
+		List * output = modulus_alt(x,m,NULL);
+		freeList(r3);
+		return output;
+	}
 
 	return r3;
 }
@@ -763,7 +799,6 @@ List * extendedEuclidean(List * e, List * phin) {
 	List * qr = NULL;
 	while(newr->data != 0) {
 		// Prepare for freeing
-		freeList(q);
 		rret = r;
 		tret = t;
 
@@ -781,6 +816,7 @@ List * extendedEuclidean(List * e, List * phin) {
 		freeList(tret);
 		freeList(qr);
 		freeList(qt);
+		freeList(q);
 	}
 	if(r->data == 1 && r->next->data == 1) {
 		// Make t positive
@@ -789,10 +825,17 @@ List * extendedEuclidean(List * e, List * phin) {
 			t = add(tret, phin);
 			freeList(tret);
 		}
+		freeList(newr);
+		freeList(newt);
+		freeList(r);
 		return t;
 	} else {
-		printf("YOU JUST GOT Z E E ' D\n");
-		return init(); // Or null?
+		//printf("YOU JUST GOT Z E E ' D\n");
+		freeList(newr);
+		freeList(newt);
+		freeList(r);
+		freeList(t);
+		return NULL; // Or null? Or init()?
 	}
 }
 
@@ -808,6 +851,7 @@ List * modInvOfR(List * m) {
 	//printNumberCorrect(R);
 	//printNumberCorrect(m);
 	List * Rinv = extendedEuclidean(R, m);
+	//if(Rinv == NULL) printf("Z\n");
 	freeList(R);
 	return Rinv;
 }
@@ -817,51 +861,60 @@ List * modInvOfMO(List * m) {
 	List * m0 = intToList(m->next->data);
 	List * B = intToList(RADIX);
 	List * m0_modinv = extendedEuclidean(m0, B);
+	if(m0_modinv == NULL) return NULL;
 	m0_modinv->data *= -1;
 	List * m0_modinvmod = modulus(m0_modinv, B, NULL);
+	freeList(m0_modinv);
+	freeList(m0);
+	freeList(B);
 	return m0_modinvmod;
 }
 
 List * changeToMontgo(List * x, List * m, List * MU) {
-	printf("::changeTo::\n");
+	//printf("::changeTo::\n");
 	int power_r = m->data;
 	if(power_r < 0) power_r *= -1;
 	List * R = intToList(1);
 	R = shift(R, power_r);
-	printf("R = ");
-	printNumberCorrect(R);
-	printf("x = ");
-	printNumberCorrect(x);
+	//printf("R = ");
+	//printNumberCorrect(R);
+	//printf("x = ");
+	//printNumberCorrect(x);
 	List * Rmod = modulus(R, m, MU);
-	printf("modR = ");
-	printNumberCorrect(Rmod);
+	//printf("modR = ");
+	//printNumberCorrect(Rmod);
 	List * Xmod = modulus(x, m, MU);
-	printf("modX = ");
-	printNumberCorrect(Xmod);
+	//printf("modX = ");
+	//printNumberCorrect(x);
+	//printNumberCorrect(Xmod);
 	List * product = mult(Xmod, Rmod);
-	printf("prod = ");
-	printNumberCorrect(product);
+	//printf("prod = ");
+	//printNumberCorrect(product);
+	//printf(" mod = ");
+	//printNumberCorrect(m);
 	List * productmod = modulus(product, m, MU);
-	printf("prodmod = ");
-	printNumberCorrect(productmod);
+	//printf("prodmod = ");
+	//printNumberCorrect(productmod);
 	freeList(R);
 	freeList(Rmod);
+	freeList(Xmod);
 	freeList(product);
-	printf("::end changeTo::\n");
+	//printf("::end changeTo::\n");
 	return productmod;
 }
 
 List * changeFromMontgo(List * x, List * m, List * MU, List * RINV) {
 	List * product = mult(x, RINV);
 	List * productmod = modulus(product, m, MU);
+	freeList(product);
 	return productmod;
 }
 
 List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) {
 	List * productl = mult(xl, yl);
-	printf("::multMongo::\n");
-	printf("montgom unreduced = ");
-	printNumberCorrect(productl);
+	//printf("::multMongo::\n");
+	//printf("montgom unreduced = ");
+	//printNumberCorrect(productl);
 	List * productl_digit = NULL;
 	List * ptr = productl->next;
 	List * k = NULL;
@@ -869,7 +922,7 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 	List * kmod = NULL;
 	List * productlret = NULL;
 	int pr = 0, i = 0;
-	printf("%d times\n", power_r);
+	//printf("%d times\n", power_r);
 	for(pr = 0; pr < power_r; pr++) {
 		//shift ptr back to the right place
 		ptr = productl->next;
@@ -878,21 +931,23 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 			ptr = ptr->next;
 		}
 
-		printf("before: ");
-		printNumberCorrect(productl);
+		//printf("before: ");
+		//printNumberCorrect(productl);
 		productlret = productl;
 		productl_digit = intToList(ptr->data);
+		//printNumberCorrect(productl_digit);
+		//printNumberCorrect(m0_recip);
 		k = mult(productl_digit, m0_recip);
 		kmod = radixModulo(k, 1);
 		mk = mult(m, kmod);
 		mk = shift(mk, pr);
 		productl = add(productlret, mk);
-		printf("LOOOO: \n");
-		printNumberCorrect(productl_digit);
-		printNumberCorrect(k);
-		printNumberCorrect(kmod);
-		printNumberCorrect(mk);
-		printNumberCorrect(productl);
+		//printf("LOOOO: \n");
+		//printNumberCorrect(productl_digit);
+		//printNumberCorrect(k);
+		//printNumberCorrect(kmod);
+		//printNumberCorrect(mk);
+		//printNumberCorrect(productl);
 
 		//free
 		freeList(productlret);
@@ -902,20 +957,23 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 		freeList(productl_digit);
 	}
 
-	printf("eeeh: ");
-	printNumberCorrect(productl);
+	//printf("eeeh: ");
+	//printNumberCorrect(productl);
 	productl = shift(productl, -1*power_r);
-	printf("noweeeh: ");
-	printNumberCorrect(productl);
-	printf("::end multMongo::\n");
+	//printf("noweeeh: ");
+	//printNumberCorrect(productl);
+	//printf("::end multMongo::\n");
 	return productl;
 }
 
 // BOIIIIIII
 // Returns FINAL PRODUCT
+// VERIFICATION???????
 List * modExp(List * x, List * e, List * m) {
 	// Basic Binary exp
 	// 1: Precompute the required constants
+	//printf("wewa ");
+	//printNumberCorrect(m);
 	List * RINV = modInvOfR(m);
 	List * MO = modInvOfMO(m);
 	int mexp = m->data; // precision of R
@@ -932,14 +990,14 @@ List * modExp(List * x, List * e, List * m) {
 	List * product = intToList(1); // y
 	int lastdig = 0;
 
-	printf("RINV = ");
-	printNumberCorrect(RINV);
-	printf("MO = ");
-	printNumberCorrect(MO);
-	printf("MU = ");
-	printNumberCorrect(MU);
-	printf("TWORECIP = ");
-	printNumberCorrect(TWO_RECIP_TRUE);
+	//printf("RINV = ");
+	//printNumberCorrect(RINV);
+	//printf("MO = ");
+	//printNumberCorrect(MO);
+	//printf("MU = ");
+	//printNumberCorrect(MU);
+	//printf("TWORECIP = ");
+	//printNumberCorrect(TWO_RECIP_TRUE);
 
 	// 2: Convert x and y in Montgomery form
 	List * xl = changeToMontgo(x, m, MU);
@@ -949,10 +1007,12 @@ List * modExp(List * x, List * e, List * m) {
 	List * eret = e;
 	List * etrans = e;
 	List * eorig = e;
-	printf("*** y,x,e ***\n");
-	printNumberCorrect(yl);
-	printNumberCorrect(xl);
-	printNumberCorrect(e);
+	//printNumberCorrect(product);
+	//printNumberCorrect(x);
+	//printf("*** y,x,e ***\n");
+	//printNumberCorrect(yl);
+	//printNumberCorrect(xl);
+	//printNumberCorrect(e);
 
 	// 3: FROOOOT LOOOOOPS
 	while(e->data != 0) {
@@ -963,30 +1023,30 @@ List * modExp(List * x, List * e, List * m) {
 		// Branch if e is even or odd
 		lastdig = e->prev->data;
 		if(lastdig % 2 == 0) { //even
-			printf("--EVEN--\n");
+			//printf("--EVEN--\n");
 			// (y,x,n) -> (y, x*x, n/2)
 			xl = multMontgo(xret, xret, mexp, m, MO);
 			e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
-			printf("*** y,x,e ***\n");
-			printNumberCorrect(yl);
-			printNumberCorrect(xl);
-			printNumberCorrect(e);
+			//printf("*** y,x,e ***\n");
+			//printNumberCorrect(yl);
+			//printNumberCorrect(xl);
+			//printNumberCorrect(e);
 
 			// Free then next iter
 			freeList(xret);
 			if(eret != eorig) freeList(eret);
 			continue;
 		} else { //odd
-			printf("--ODD--\n");
+			//printf("--ODD--\n");
 			// (y,x,n) -> (x*y, x*x*, (n-1)/2
 			yl = multMontgo(xret, yret, mexp, m, MO);
 			xl = multMontgo(xret, xret, mexp, m, MO);
 			etrans = sub(eret,ONE);
 			e = divide(etrans, TWO, TWO_RECIP_TRUE, twoprec);
-			printf("*** y,x,e ***\n");
-			printNumberCorrect(yl);
-			printNumberCorrect(xl);
-			printNumberCorrect(e);
+			//printf("*** y,x,e ***\n");
+			//printNumberCorrect(yl);
+			//printNumberCorrect(xl);
+			//printNumberCorrect(e);
 
 			// Free then next iter
 			freeList(yret);
@@ -1001,12 +1061,14 @@ List * modExp(List * x, List * e, List * m) {
 	List * output = changeFromMontgo(yl, m, MU, RINV);
 	freeList(xl);
 	freeList(yl);
+	freeList(e);
 	freeList(RINV);
 	freeList(MO);
 	freeList(MU);
 	freeList(TWO);
 	freeList(ONE);
 	freeList(TWO_RECIP);
+	freeList(TWO_RECIP_TRUE);
 	freeList(product);
 	return output;
 }
@@ -1183,16 +1245,21 @@ void testExp() {
 	}
 }
 
+void testMem() {
+	List * list = init();
+	list = append(list, 1);
+	list = append(list, 2);
+	printNumberCorrect(list);
+	freeList(list);
+	return;
+}
+
 void main() {
 	// testing realm
-	//testMontgo();
-	//testmsg();
-	testExp();
-	return;
 	// Declarations
 	FILE * fin;
 	FILE * fout;
-	fin = fopen("test.txt", "r");
+	fin = fopen("INPUT.txt", "r");
 	fout = fopen("201508086.txt", "w");
 
 	char filler[FILLER_SIZE]; //Stores the useless text (eg. Alice / Bob / etc.)
@@ -1205,12 +1272,11 @@ void main() {
 	List * qmo = NULL;
 	List * e = NULL;
 	List * m = NULL;
+	List * mbten = NULL;
 	List * n = NULL;
 	List * phin = NULL;
-
-	// Testing variable
-	List * pandq = NULL;
-	List * porq = NULL;
+	List * d = NULL;
+	List * m_raised = NULL;
 	
 	while(filler[0] != 'E') {
 		fin = readFiller(fin, filler);
@@ -1221,10 +1287,8 @@ void main() {
 			p = freeList(p);
 			q = freeList(q);
 			e = freeList(e);
-			pmo = freeList(pmo);
-			qmo = freeList(qmo);
 			n = freeList(n);
-			phin = freeList(phin);
+			d = freeList(d);
 			p = init();
 			q = init();
 			e = init();
@@ -1242,14 +1306,7 @@ void main() {
 			printNumberCorrect(p);
 			printNumberCorrect(q);
 			printNumberCorrect(e);
-
-			//Check if the addition fxn is working
-			porq = add(p,q);
-			printNumberCorrect(porq);
-			freeList(porq);
-			pandq = sub(p,q);
-			printNumberCorrect(pandq);
-			freeList(pandq);
+			printf("\\******/\n");
 
 			// Get n
 			n = mult(p,q);
@@ -1266,22 +1323,58 @@ void main() {
 			phin = mult(pmo, qmo);
 			printf("phi(n) = ");
 			printNumberCorrect(phin);
+
+			// Get d
+			d = extendedEuclidean(e, phin);
+			if(d == NULL) {
+				printf("Invalid e\n");
+				pmo = freeList(pmo);
+				qmo = freeList(qmo);
+				phin = freeList(phin);
+				continue;
+			}
+			printf("d = ");
+			printNumberCorrect(d);
+			pmo = freeList(pmo);
+			qmo = freeList(qmo);
+			phin = freeList(phin);
 		} else if(filler[0] == 'B') {
+			if(d==NULL) continue;
 			// Decrypt m
 			printf("Decrypt X\n");
 			// Get X
-			m = freeList(m);
 			m = init();
 			fin = readMessage(fin, m);
-			printMessage(m);
+			//printMessage(m);
+
+			// Convert to b10
+			mbten = base27to10(m);
+			m_raised = modExp(mbten, d, n);
+			printf("m^d mod n b10: ");
+			printNumberCorrect(m_raised);
+
+			// free
+			freeList(mbten);
+			freeList(m_raised);
+			freeList(m);
 		} else if(filler[0] == 'A') {
+			if(d==NULL) continue;
 			// Encrypt m
 			printf("Encrypt M\n");
 			// Get M
-			m = freeList(m);
 			m = init();
 			fin = readMessage(fin, m);
-			printMessage(m);
+			//printMessage(m);
+			// Convert to b10
+			mbten = base27to10(m);
+			m_raised = modExp(mbten, e, n);
+			printf("m^e mod n b10: ");
+			printNumberCorrect(m_raised);
+
+			// free
+			freeList(mbten);
+			freeList(m_raised);
+			freeList(m);
 		} else if(filler[0] == 'E') {
 			// END
 		}
@@ -1293,8 +1386,13 @@ void main() {
 	p = freeList(p);
 	q = freeList(q);
 	e = freeList(e);
-	m = freeList(m);
 	n = freeList(n);
+	one = freeList(one);
+
+	freeList(pmo);
+	freeList(qmo);
+	freeList(phin);
+	freeList(d);
 	fclose(fin);
 	fclose(fout);
 }
