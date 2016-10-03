@@ -968,6 +968,17 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 	return productl;
 }
 
+List * multMod(List * x, List * y, List * m, List * MU) {
+	List * xmod = modulus(x, m, MU);
+	List * ymod = modulus(y, m, MU);
+	List * prod = mult(xmod, ymod);
+	List * prodmod = modulus(prod, m, MU);
+	freeList(xmod);
+	freeList(ymod);
+	freeList(prod);
+	return prodmod;
+}
+
 // BOIIIIIII
 // Returns FINAL PRODUCT
 // VERIFICATION???????
@@ -1023,40 +1034,20 @@ List * modExp(List * x, List * e, List * m) {
 		yret = yl;
 		eret = e;
 		// Branch if e is even or odd
-		lastdig = e->prev->data;
-		if(lastdig % 2 == 0) { //even
+		lastdig = e->next->data;
+		if(lastdig % 2 == 1) { //odd
 			//printf("--EVEN--\n");
 			// (y,x,n) -> (y, x*x, n/2)
-			xl = multMontgo(xret, xret, mexp, m, MO);
-			e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
-			//printf("*** y,x,e ***\n");
-			//printNumberCorrect(yl);
-			//printNumberCorrect(xl);
-			//printNumberCorrect(e);
-
-			// Free then next iter
-			freeList(xret);
-			if(eret != eorig) freeList(eret);
-			continue;
-		} else { //odd
-			//printf("--ODD--\n");
-			// (y,x,n) -> (x*y, x*x*, (n-1)/2
 			yl = multMontgo(xret, yret, mexp, m, MO);
-			xl = multMontgo(xret, xret, mexp, m, MO);
-			etrans = sub(eret,ONE);
-			e = divide(etrans, TWO, TWO_RECIP_TRUE, twoprec);
+			freeList(yret);
 			//printf("*** y,x,e ***\n");
 			//printNumberCorrect(yl);
 			//printNumberCorrect(xl);
 			//printNumberCorrect(e);
-
-			// Free then next iter
-			freeList(yret);
-			freeList(xret);
-			if(eret != eorig) freeList(eret);
-			freeList(etrans);
-			continue;
 		}
+		xl = multMontgo(xret, xret, mexp, m, MO);
+		e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
+		if(eret != eorig) freeList(eret);
 	}
 
 	// 4: Convert yl back to current form
@@ -1075,6 +1066,77 @@ List * modExp(List * x, List * e, List * m) {
 	return output;
 }
 
+List * modExpNoMontgo(List * x, List * e, List * m) {
+	// 1: Precompute the required constants
+	//printf("wewa ");
+	//printNumberCorrect(m);
+	List * RINV = modInvOfR(m);
+	List * MO = modInvOfMO(m);
+	int mexp = m->data; // precision of R
+	if(mexp<0) mexp*=-1;
+	int twoe = mexp * 2; // precision for MU
+	List * MU = NewtonRhapson(m, twoe);
+	List * TWO = intToList(2);
+	List * ONE = intToList(1);
+	int twoprec = e->data; // precision for div by 2
+	if(twoprec < 0) twoprec *= -1;
+	twoprec = (twoprec+1) * 2; // precise german engineering
+	List * TWO_RECIP = NewtonRhapson(TWO, twoprec); // Precomputed
+	List * TWO_RECIP_TRUE = add(TWO_RECIP, ONE);
+	List * y = intToList(1); // y
+	int lastdig = 0;
+
+	//printf("RINV = ");
+	//printNumberCorrect(RINV);
+	//printf("MO = ");
+	//printNumberCorrect(MO);
+	//printf("MU = ");
+	//printNumberCorrect(MU);
+	//printf("TWORECIP = ");
+	//printNumberCorrect(TWO_RECIP_TRUE);
+
+	// 2: Declare retnode variables
+	List * xret = x;
+	List * yret = y;
+	List * eret = e;
+	List * etrans = e;
+	List * eorig = e;
+
+	while(e->data != 0) {
+		xret = x;
+		yret = y;
+		eret = e;
+		printf("*** y,x,e ***\n");
+		printNumberCorrect(y);
+		printNumberCorrect(x);
+		printNumberCorrect(e);
+		lastdig = e->next->data;
+		if(lastdig % 2 == 1) {
+			printf("%d uy\n", lastdig);
+			y = multMod(x, y, m, MU);
+			freeList(yret);
+		}
+		printNumberCorrect(y);
+		x = multMod(x, x, m, MU);
+		e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
+		if(eret != eorig) freeList(eret);
+	}
+
+	printf("*!* y,x,e *!*\n");
+	printNumberCorrect(y);
+	printNumberCorrect(x);
+	printNumberCorrect(e);
+	freeList(e);
+	freeList(RINV);
+	freeList(MO);
+	freeList(MU);
+	freeList(TWO);
+	freeList(ONE);
+	freeList(TWO_RECIP);
+	freeList(TWO_RECIP_TRUE);
+	return y;
+}
+
 List * base10to27(List * a) {
 	// None yet
 	// Precomputeds
@@ -1091,12 +1153,12 @@ List * base10to27(List * a) {
 		anext = divide(a, base, NULL, k);
 		amod = modulus_alt(a, base, anext);
 
-		printf("a:");
-		printNumberCorrect(a);
-		printf("anext:");
-		printNumberCorrect(anext);
-		printf("amod:");
-		printNumberCorrect(amod);
+		//printf("a:");
+		//printNumberCorrect(a);
+		//printf("anext:");
+		//printNumberCorrect(anext);
+		//printf("amod:");
+		//printNumberCorrect(amod);
 		output = append(output, amod->next->data);
 		freeList(a);
 		a = anext;
@@ -1129,12 +1191,15 @@ void test() {
 }
 
 void testmsg() {
-	FILE * ftest = fopen("testmessage.txt", "r");
+	FILE * ftest = fopen("testmsg.txt", "r");
 	List * msg = init();
 	ftest = readMessage(ftest, msg);
 	printMessage(msg);
 	List * bten = base27to10(msg);
 	printNumberCorrect(bten);
+	List * bconv = base10to27(bten);
+	printMessage(bconv);
+	freeList(bconv);
 	freeList(msg);
 	fclose(ftest);
 	return;
@@ -1268,8 +1333,6 @@ void testConvert() {
 
 void main() {
 	// testing realm
-	testExp();
-	return;
 	// Declarations
 	FILE * fin;
 	FILE * fout;
@@ -1356,18 +1419,18 @@ void main() {
 		} else if(filler[0] == 'B') {
 			if(d==NULL) continue;
 			// Decrypt m
-			printf("Decrypt X\n");
+			//printf("Decrypt X\n");
 			// Get X
 			m = init();
 			fin = readMessage(fin, m);
-			printMessageCorrect(m);
+			//printMessageCorrect(m);
 
 			// Convert to b10
 			mbten = base27to10(m);
 			m_raised = modExp(mbten, d, n);
 			m_conv = base10to27(m_raised);
 			printf("m^d mod n b10: ");
-			printMessage(m_conv);
+			printMessageCorrect(m_conv);
 
 			// free
 			freeList(mbten);
@@ -1376,17 +1439,17 @@ void main() {
 		} else if(filler[0] == 'A') {
 			if(d==NULL) continue;
 			// Encrypt m
-			printf("Encrypt M\n");
+			//printf("Encrypt M\n");
 			// Get M
 			m = init();
 			fin = readMessage(fin, m);
-			printMessageCorrect(m);
+			//printMessageCorrect(m);
 			// Convert to b10
 			mbten = base27to10(m);
 			m_raised = modExp(mbten, e, n);
 			m_conv = base10to27(m_raised);
 			printf("m^e mod n b10: ");
-			printMessage(m_conv);
+			printMessageCorrect(m_conv);
 
 			// free
 			freeList(mbten);
