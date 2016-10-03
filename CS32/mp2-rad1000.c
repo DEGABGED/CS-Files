@@ -27,6 +27,7 @@ typedef struct List {
 	struct List * prev;
 } List;
 
+// O(1)
 List * init() {
 	List * out = (List*) malloc(sizeof(List));
 	out->data = 0; // Size of the list
@@ -37,6 +38,7 @@ List * init() {
 
 // Prepend puts the new digit between the list head and first digit
 // Use when reading from highest to lowest place value
+// O(1)
 List * prepend(List * list, int data) {
 	List * newnode = (List*) malloc(sizeof(List));
 	newnode->data = data;
@@ -73,6 +75,7 @@ List * append(List * list, int data) {
 }
 
 // Delete end removes least significant digits (opposite of prepend)
+// O(1)
 List * deleteRight(List * list) {
 	List * retnode = list->next;
 	list->next = retnode->next;
@@ -83,7 +86,7 @@ List * deleteRight(List * list) {
 }
 
 // O(e), e = number of digits of n
-// radix is 1,000,000,000
+// radix is 1,000
 List * intToList(int n) {
 	// Assume representation in base 10
 	List * output = init();
@@ -99,6 +102,7 @@ List * intToList(int n) {
 
 // Duplicate list
 // UNTESTED !!!!!!!!!!
+// O(n)
 List * duplicate(List * n) {
 	List * new = init();
 	List * ptr = n->next;
@@ -314,6 +318,7 @@ void printMessageCorrect(List * msg) {
 }
 
 // Compares A and B (+ if A is bigger, - if B is bigger, 0 otherwise)
+// Om(1) to O(n)
 int compare(List * a, List * b) {
 	List * atail = a->prev;
 	List * btail = b->prev;
@@ -329,7 +334,7 @@ int compare(List * a, List * b) {
 }
 
 // Computes A + B
-// O(n), n being the number of digits output will have
+// O(i+j) or O(n), A has i digits; B has j digits
 List * add(List * a, List * b) {
 	// Instantiate atail and btail
 	List * atail = a->prev;
@@ -448,7 +453,7 @@ List * add(List * a, List * b) {
 }
 
 // Computes AB (might be inefficient; can be optimized later)
-// O(n^2), n being the number of digits of a and b
+// O(ij) or O(n^2), A has i digits; B has j digits
 List * mult(List * a, List * b) {
 	// If one of them is 0
 	if(a->data == 0 || b->data == 0) return init();
@@ -535,6 +540,7 @@ List * sub(List * a, List * b) {
 }
 
 // Computes "bitshifting" (-n implies to right, vv.)
+// O(n), n being amount shifted
 List * shift(List * a, int n) {
 	// Just leave if a is already 0
 	if(a == NULL || a->data == 0) return a;
@@ -554,6 +560,7 @@ List * shift(List * a, int n) {
 
 // Might be a bottleneck
 // To be optimized (storing powers of 27 somewhere)
+// O(2n^3 + 6n^2) or O(n^3)
 List * base27to10(List * a) {
 	List * b = intToList(27);
 	List * powerb = intToList(1);
@@ -585,7 +592,7 @@ List * base27to10(List * a) {
 	return output;
 }
 
-// O(mygod)
+// O(n log n) ?
 // Finds estimate for reciprocal of d times b^2e
 // NOTE: in modulus and div, the "exponent" is actually 2(e+1) because of indexing
 List * NewtonRhapson(List * d, int two_e) {
@@ -641,7 +648,7 @@ List * NewtonRhapson(List * d, int two_e) {
 	return x;
 }
 
-// O()
+// O(n^2 + 2n + n log n) or O(n^2)
 // Computes [a/b] with NewtonRhapson
 List * divide(List * a, List * b, List * b_recip, int two_k_out) {
 	// Check if the answer will be zero
@@ -677,7 +684,7 @@ List * divide(List * a, List * b, List * b_recip, int two_k_out) {
 	return adivb;
 }
 
-// O()O
+// O(2n^2) or O(n^2) if q is given
 // Does modulo for when barrett can't
 List * modulus_alt(List * x, List * m, List * q) {
 	// x = qm + r; q = [x/m]
@@ -694,7 +701,7 @@ List * modulus_alt(List * x, List * m, List * q) {
 	return r;
 }
 
-// O(hno)
+// O(n) where n is power of radix
 // Does modulo but in radix
 List * radixModulo(List * x, int power_m) {
 	// Basically preserve the power_m least significant digits
@@ -708,10 +715,9 @@ List * radixModulo(List * x, int power_m) {
 	return output;
 }
 
-//O(tanginang froot loops)
+// O(2n^2) if x < m^2; O(2n^2 + 8n) if mu is precomputed
 // Returns r = x mod m
 // Does Barrett Reduction if necessarcy
-// NEEDS: NewtonRhapson, shift
 // BARRETTS ONLY WORKS FOR x < m^2 TAKE NOTE OF THIS
 List * modulus(List * x, List * m, List * mu) {
 	int deletThis = 0;
@@ -727,6 +733,7 @@ List * modulus(List * x, List * m, List * mu) {
 	}
 	if(compare(m, x) >= 0) return duplicate(x); // If x < m
 	if(x->data >= 2*(m->data)-1) {
+		// Barrett won't work
 		//printf("bro you just got Z E E ' D\n");
 		List * output = modulus_alt(x, m, NULL);
 		return output;
@@ -786,14 +793,13 @@ List * modulus(List * x, List * m, List * mu) {
 	return r3;
 }
 
-// O(pretty fucking big)
+// O(3n^3 + 10n^2) or O(n^3) where n = number of digits
 // Takes in e and phin s.t. e*x + phin*y = 1, returns x
-// TOO LAZY TO TEST NEWFOUND HACK FOR DIV PRECISION AHAHAHAHA
 List * extendedEuclidean(List * e, List * phin) {
 	List * t = intToList(0);
 	List * newt = intToList(1);
 	List * tret = t;
-	List  * r = duplicate(phin);
+	List * r = duplicate(phin);
 	List * newr = duplicate(e);
 	List * rret = r;
 	List * q = NULL;
@@ -841,7 +847,7 @@ List * extendedEuclidean(List * e, List * phin) {
 	}
 }
 
-// O(gadududu push pineapple shake the tree)
+// O(n^3)
 // MONTGOMERY FUNCTIONS
 // Precompute ModInv of R mod m
 List * modInvOfR(List * m) {
@@ -858,6 +864,7 @@ List * modInvOfR(List * m) {
 	return Rinv;
 }
 
+// O(n^3 + 2n^2 + 5n) or O(n^3)
 List * modInvOfMO(List * m) {
 	if(m->data == 0) return NULL;
 	List * m0 = intToList(m->next->data);
@@ -872,6 +879,7 @@ List * modInvOfMO(List * m) {
 	return m0_modinvmod;
 }
 
+// O(
 List * changeToMontgo(List * x, List * m, List * MU) {
 	//printf("::changeTo::\n");
 	int power_r = m->data;
@@ -968,17 +976,6 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 	return productl;
 }
 
-List * multMod(List * x, List * y, List * m, List * MU) {
-	List * xmod = modulus(x, m, MU);
-	List * ymod = modulus(y, m, MU);
-	List * prod = mult(xmod, ymod);
-	List * prodmod = modulus(prod, m, MU);
-	freeList(xmod);
-	freeList(ymod);
-	freeList(prod);
-	return prodmod;
-}
-
 // BOIIIIIII
 // Returns FINAL PRODUCT
 // VERIFICATION???????
@@ -1066,77 +1063,6 @@ List * modExp(List * x, List * e, List * m) {
 	return output;
 }
 
-List * modExpNoMontgo(List * x, List * e, List * m) {
-	// 1: Precompute the required constants
-	//printf("wewa ");
-	//printNumberCorrect(m);
-	List * RINV = modInvOfR(m);
-	List * MO = modInvOfMO(m);
-	int mexp = m->data; // precision of R
-	if(mexp<0) mexp*=-1;
-	int twoe = mexp * 2; // precision for MU
-	List * MU = NewtonRhapson(m, twoe);
-	List * TWO = intToList(2);
-	List * ONE = intToList(1);
-	int twoprec = e->data; // precision for div by 2
-	if(twoprec < 0) twoprec *= -1;
-	twoprec = (twoprec+1) * 2; // precise german engineering
-	List * TWO_RECIP = NewtonRhapson(TWO, twoprec); // Precomputed
-	List * TWO_RECIP_TRUE = add(TWO_RECIP, ONE);
-	List * y = intToList(1); // y
-	int lastdig = 0;
-
-	//printf("RINV = ");
-	//printNumberCorrect(RINV);
-	//printf("MO = ");
-	//printNumberCorrect(MO);
-	//printf("MU = ");
-	//printNumberCorrect(MU);
-	//printf("TWORECIP = ");
-	//printNumberCorrect(TWO_RECIP_TRUE);
-
-	// 2: Declare retnode variables
-	List * xret = x;
-	List * yret = y;
-	List * eret = e;
-	List * etrans = e;
-	List * eorig = e;
-
-	while(e->data != 0) {
-		xret = x;
-		yret = y;
-		eret = e;
-		printf("*** y,x,e ***\n");
-		printNumberCorrect(y);
-		printNumberCorrect(x);
-		printNumberCorrect(e);
-		lastdig = e->next->data;
-		if(lastdig % 2 == 1) {
-			printf("%d uy\n", lastdig);
-			y = multMod(x, y, m, MU);
-			freeList(yret);
-		}
-		printNumberCorrect(y);
-		x = multMod(x, x, m, MU);
-		e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
-		if(eret != eorig) freeList(eret);
-	}
-
-	printf("*!* y,x,e *!*\n");
-	printNumberCorrect(y);
-	printNumberCorrect(x);
-	printNumberCorrect(e);
-	freeList(e);
-	freeList(RINV);
-	freeList(MO);
-	freeList(MU);
-	freeList(TWO);
-	freeList(ONE);
-	freeList(TWO_RECIP);
-	freeList(TWO_RECIP_TRUE);
-	return y;
-}
-
 List * base10to27(List * a) {
 	// None yet
 	// Precomputeds
@@ -1159,6 +1085,7 @@ List * base10to27(List * a) {
 		//printNumberCorrect(anext);
 		//printf("amod:");
 		//printNumberCorrect(amod);
+		//printf("\n");
 		output = append(output, amod->next->data);
 		freeList(a);
 		a = anext;
@@ -1190,149 +1117,7 @@ void test() {
 	return;
 }
 
-void testmsg() {
-	FILE * ftest = fopen("testmsg.txt", "r");
-	List * msg = init();
-	ftest = readMessage(ftest, msg);
-	printMessage(msg);
-	List * bten = base27to10(msg);
-	printNumberCorrect(bten);
-	List * bconv = base10to27(bten);
-	printMessage(bconv);
-	freeList(bconv);
-	freeList(msg);
-	fclose(ftest);
-	return;
-}
-
-void testMontgo() {
-	FILE * ftest = fopen("testmsg.txt", "r");
-	List * a = NULL;
-	List * b = NULL;
-	List * m = NULL;
-	List * RINV = NULL;
-	List * MO = NULL;
-	List * MU = NULL;
-	List * aMG = NULL;
-	List * bMG = NULL;
-	List * pMG = NULL;
-	List * p = NULL;
-	int twoe = 0;
-	while(1) {
-		a = init();
-		b = init();
-		m = init();
-		ftest = readNumber(ftest, a);
-		printf("a = ");
-		printNumberCorrect(a);
-		if(a->data == 0) break;
-		ftest = readNumber(ftest, b);
-		printf("b = ");
-		printNumberCorrect(b);
-		ftest = readNumber(ftest, m);
-		printf("m = ");
-		printNumberCorrect(m);
-		
-		// Precomputations
-		twoe = m->data;
-		if(twoe<0) twoe *= -1;
-		twoe *= 2;
-		MU = NewtonRhapson(m, twoe);
-		printf("mu = ");
-		printNumberCorrect(MU);
-		MO = modInvOfMO(m);
-		printf("mo = ");
-		printNumberCorrect(MO);
-		RINV = modInvOfR(m);
-		printf("rinv = ");
-		printNumberCorrect(RINV);
-
-		// Actual computations
-		// Convert a and b to Montgomery form
-		aMG = changeToMontgo(a, m, MU);
-		printf("a Montgomery = ");
-		printNumberCorrect(aMG);
-		bMG = changeToMontgo(b, m, MU);
-		printf("b Montgomery = ");
-		printNumberCorrect(bMG);
-
-		// Find product and convert back
-		pMG = multMontgo(aMG, bMG, twoe/2, m, MO);
-		printf("Montgomery Product = ");
-		printNumberCorrect(pMG);
-		p = changeFromMontgo(pMG, m, MU, RINV);
-		printf("Converted Product = ");
-		printNumberCorrect(p);
-
-		// FREE
-		freeList(a);
-		freeList(b);
-		freeList(m);
-		freeList(MU);
-		freeList(MO);
-		freeList(RINV);
-		freeList(aMG);
-		freeList(bMG);
-		freeList(pMG);
-		freeList(p);
-		printf("\n");
-	}
-	fclose(ftest);
-	return;
-}
-
-void testExp() {
-	FILE * ftest = fopen("testexp.txt", "r");
-	List * x = NULL;
-	List * e = NULL;
-	List * m = NULL;
-	List * p = NULL;
-	while(1) {
-		x = init();
-		e = init();
-		m = init();
-		if(feof(ftest)) break;
-		ftest = readNumber(ftest, x);
-		printf("x = ");
-		printNumberCorrect(x);
-		if(x->data == 0) break;
-		ftest = readNumber(ftest, e);
-		printf("e = ");
-		printNumberCorrect(e);
-		ftest = readNumber(ftest, m);
-		printf("m = ");
-		printNumberCorrect(m);
-
-		p = modExp(x,e,m);
-		printf("x^e mod m = ");
-		printNumberCorrect(p);
-
-		freeList(x);
-		freeList(e);
-		freeList(m);
-		freeList(p);
-	}
-}
-
-void testMem() {
-	List * list = init();
-	list = append(list, 1);
-	list = append(list, 2);
-	printNumberCorrect(list);
-	freeList(list);
-	return;
-}
-
-void testConvert() {
-	List * bten = intToList(32753918);
-	List * bconv = base10to27(bten);
-	printMessage(bconv);
-	freeList(bten);
-	freeList(bconv);
-}
-
 void main() {
-	// testing realm
 	// Declarations
 	FILE * fin;
 	FILE * fout;
