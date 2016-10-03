@@ -519,6 +519,8 @@ List * sub(List * a, List * b) {
 
 // Computes "bitshifting" (-n implies to right, vv.)
 List * shift(List * a, int n) {
+	// Just leave if a is already 0
+	if(a == NULL || a->data == 0) return a;
 	// If shifting to the left (* RADIX)
 	while(n > 0) {
 		a = prepend(a, 0);
@@ -627,25 +629,35 @@ List * NewtonRhapson(List * d, int two_e) {
 
 // O()
 // Computes [a/b] with NewtonRhapson
-List * divide(List * a, List * b) {
+List * divide(List * a, List * b, List * b_recip, int two_k_out) {
+	// Check if the answer will be zero
+	// fuck it assume it will return 0 if a < b
 	int bprec = a->data; // P R E C I S I O N
+	int deletThis = 1;
 	List * hack = intToList(10);
 	List * hack_b_recip = NULL;
 	if(bprec < 0) bprec *= -1;
 	int k = bprec + 1; // Muh precision
 	int two_k = k*2; // Gimme that sweet sweet P R E C I S I O N
-	List * b_recip = NewtonRhapson(b, two_k);
-	// WARNING: HACK
-	hack_b_recip = b_recip;
-	b_recip = add(hack_b_recip, hack);
-	//printf("100../b = ");
-	//printNumberCorrect(b_recip);
+	if(b_recip == NULL) {
+		b_recip = NewtonRhapson(b, two_k);
+		// WARNING: HACK
+		hack_b_recip = b_recip;
+		b_recip = add(hack_b_recip, hack);
+	} else {
+		two_k = two_k_out;
+		deletThis = 0;
+	}
+	printf("100../b = ");
+	printNumberCorrect(b_recip);
 	List * adivb = mult(a, b_recip);
-	//printf("a*100../b = ");
-	//printNumberCorrect(adivb);
-	//printf("precision of revert: %d\n", two_k-bprec);
+	printf("a*100../b = ");
+	printNumberCorrect(adivb);
+	printf("precision of revert: %d\n", two_k-bprec);
+	printf("adivb? (%d) ", two_k);
+	printNumberCorrect(adivb);
 	adivb = shift(adivb, -1*two_k);
-	freeList(b_recip);
+	if(deletThis) freeList(b_recip);
 	freeList(hack);
 	freeList(hack_b_recip);
 	return adivb;
@@ -756,7 +768,7 @@ List * extendedEuclidean(List * e, List * phin) {
 		tret = t;
 
 		// Do math
-		q = divide(r, newr);
+		q = divide(r, newr, NULL, 0);
 		t = newt;
 		qt = mult(q, newt);
 		newt = sub(tret, qt);
@@ -792,6 +804,9 @@ List * modInvOfR(List * m) {
 	if(power_r < 0) power_r *= -1;
 	List * R = intToList(1);
 	R = shift(R, power_r);
+	//printf("before zee: ");
+	//printNumberCorrect(R);
+	//printNumberCorrect(m);
 	List * Rinv = extendedEuclidean(R, m);
 	freeList(R);
 	return Rinv;
@@ -808,6 +823,7 @@ List * modInvOfMO(List * m) {
 }
 
 List * changeToMontgo(List * x, List * m, List * MU) {
+	printf("::changeTo::\n");
 	int power_r = m->data;
 	if(power_r < 0) power_r *= -1;
 	List * R = intToList(1);
@@ -826,9 +842,12 @@ List * changeToMontgo(List * x, List * m, List * MU) {
 	printf("prod = ");
 	printNumberCorrect(product);
 	List * productmod = modulus(product, m, MU);
+	printf("prodmod = ");
+	printNumberCorrect(productmod);
 	freeList(R);
 	freeList(Rmod);
 	freeList(product);
+	printf("::end changeTo::\n");
 	return productmod;
 }
 
@@ -840,6 +859,7 @@ List * changeFromMontgo(List * x, List * m, List * MU, List * RINV) {
 
 List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) {
 	List * productl = mult(xl, yl);
+	printf("::multMongo::\n");
 	printf("montgom unreduced = ");
 	printNumberCorrect(productl);
 	List * productl_digit = NULL;
@@ -848,11 +868,12 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 	List * mk = NULL;
 	List * kmod = NULL;
 	List * productlret = NULL;
+	int pr = 0, i = 0;
 	printf("%d times\n", power_r);
-	for(int pr = 0; pr < power_r; pr++) {
+	for(pr = 0; pr < power_r; pr++) {
 		//shift ptr back to the right place
 		ptr = productl->next;
-		for(int i=0; i<pr; i++) {
+		for(i=0; i<pr; i++) {
 			if(ptr == productl || ptr->next == productl) break;
 			ptr = ptr->next;
 		}
@@ -884,14 +905,117 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 	printf("eeeh: ");
 	printNumberCorrect(productl);
 	productl = shift(productl, -1*power_r);
+	printf("noweeeh: ");
+	printNumberCorrect(productl);
+	printf("::end multMongo::\n");
 	return productl;
+}
+
+// BOIIIIIII
+// Returns FINAL PRODUCT
+List * modExp(List * x, List * e, List * m) {
+	// Basic Binary exp
+	// 1: Precompute the required constants
+	List * RINV = modInvOfR(m);
+	List * MO = modInvOfMO(m);
+	int mexp = m->data; // precision of R
+	if(mexp<0) mexp*=-1;
+	int twoe = mexp * 2; // precision for MU
+	List * MU = NewtonRhapson(m, twoe);
+	List * TWO = intToList(2);
+	List * ONE = intToList(1);
+	int twoprec = e->data; // precision for div by 2
+	if(twoprec < 0) twoprec *= -1;
+	twoprec = (twoprec+1) * 2; // precise german engineering
+	List * TWO_RECIP = NewtonRhapson(TWO, twoprec); // Precomputed
+	List * TWO_RECIP_TRUE = add(TWO_RECIP, ONE);
+	List * product = intToList(1); // y
+	int lastdig = 0;
+
+	printf("RINV = ");
+	printNumberCorrect(RINV);
+	printf("MO = ");
+	printNumberCorrect(MO);
+	printf("MU = ");
+	printNumberCorrect(MU);
+	printf("TWORECIP = ");
+	printNumberCorrect(TWO_RECIP_TRUE);
+
+	// 2: Convert x and y in Montgomery form
+	List * xl = changeToMontgo(x, m, MU);
+	List * xret = xl;
+	List * yl = changeToMontgo(product, m, MU);
+	List * yret = yl;
+	List * eret = e;
+	List * etrans = e;
+	List * eorig = e;
+	printf("*** y,x,e ***\n");
+	printNumberCorrect(yl);
+	printNumberCorrect(xl);
+	printNumberCorrect(e);
+
+	// 3: FROOOOT LOOOOOPS
+	while(e->data != 0) {
+		// Set the free
+		xret = xl;
+		yret = yl;
+		eret = e;
+		// Branch if e is even or odd
+		lastdig = e->prev->data;
+		if(lastdig % 2 == 0) { //even
+			printf("--EVEN--\n");
+			// (y,x,n) -> (y, x*x, n/2)
+			xl = multMontgo(xret, xret, mexp, m, MO);
+			e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
+			printf("*** y,x,e ***\n");
+			printNumberCorrect(yl);
+			printNumberCorrect(xl);
+			printNumberCorrect(e);
+
+			// Free then next iter
+			freeList(xret);
+			if(eret != eorig) freeList(eret);
+			continue;
+		} else { //odd
+			printf("--ODD--\n");
+			// (y,x,n) -> (x*y, x*x*, (n-1)/2
+			yl = multMontgo(xret, yret, mexp, m, MO);
+			xl = multMontgo(xret, xret, mexp, m, MO);
+			etrans = sub(eret,ONE);
+			e = divide(etrans, TWO, TWO_RECIP_TRUE, twoprec);
+			printf("*** y,x,e ***\n");
+			printNumberCorrect(yl);
+			printNumberCorrect(xl);
+			printNumberCorrect(e);
+
+			// Free then next iter
+			freeList(yret);
+			freeList(xret);
+			if(eret != eorig) freeList(eret);
+			freeList(etrans);
+			continue;
+		}
+	}
+
+	// 4: Convert yl back to current form
+	List * output = changeFromMontgo(yl, m, MU, RINV);
+	freeList(xl);
+	freeList(yl);
+	freeList(RINV);
+	freeList(MO);
+	freeList(MU);
+	freeList(TWO);
+	freeList(ONE);
+	freeList(TWO_RECIP);
+	freeList(product);
+	return output;
 }
 
 void test() {
 	// WORKS: Reading numbers, addition, subtraction, multiplication (?)
 	// Might have bugs: Reciprocation, Division, Modulo (INC)
 	// 27 to 10
-	FILE * ftest = fopen("test.txt", "r");
+	FILE * ftest = fopen("testmessage.txt", "r");
 	List * a = NULL;
 	List * b = NULL;
 	List * c = NULL;
@@ -907,17 +1031,23 @@ void test() {
 		c = init();
 		if(feof(ftest)) break;
 		ftest = readNumber(ftest, a);
+		printf("a = ");
+		printNumberCorrect(a);
 		if(a->data == 0) break;
 		ftest = readNumber(ftest, b);
+		printf("b = ");
+		printNumberCorrect(b);
 		if(b->data == 0) break;
 		ftest = readNumber(ftest, c);
 		pm1 = sub(a, one);
 		qm1 = sub(b, one);
 		phin = mult(pm1, qm1);
+		printf("phin = ");
+		printNumberCorrect(phin);
 		d = extendedEuclidean(c,phin);
-		//printf("c = ");
+		printf("c = ");
 		printNumberCorrect(c);
-		//printf("d = ");
+		printf("d = ");
 		if(d!=NULL) printNumberCorrect(d);
 		a = freeList(a);
 		b = freeList(b);
@@ -933,7 +1063,7 @@ void test() {
 }
 
 void testmsg() {
-	FILE * ftest = fopen("testmsg.txt", "r");
+	FILE * ftest = fopen("testmessage.txt", "r");
 	List * msg = init();
 	ftest = readMessage(ftest, msg);
 	printMessage(msg);
@@ -1020,9 +1150,44 @@ void testMontgo() {
 	return;
 }
 
+void testExp() {
+	FILE * ftest = fopen("testexp.txt", "r");
+	List * x = NULL;
+	List * e = NULL;
+	List * m = NULL;
+	List * p = NULL;
+	while(1) {
+		x = init();
+		e = init();
+		m = init();
+		if(feof(ftest)) break;
+		ftest = readNumber(ftest, x);
+		printf("x = ");
+		printNumberCorrect(x);
+		if(x->data == 0) break;
+		ftest = readNumber(ftest, e);
+		printf("e = ");
+		printNumberCorrect(e);
+		ftest = readNumber(ftest, m);
+		printf("m = ");
+		printNumberCorrect(m);
+
+		p = modExp(x,e,m);
+		printf("x^e mod m = ");
+		printNumberCorrect(p);
+
+		freeList(x);
+		freeList(e);
+		freeList(m);
+		freeList(p);
+	}
+}
+
 void main() {
 	// testing realm
-	testMontgo();
+	//testMontgo();
+	//testmsg();
+	testExp();
 	return;
 	// Declarations
 	FILE * fin;
