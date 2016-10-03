@@ -280,7 +280,7 @@ void printNumberCorrect(List * num) {
 
 void printMessage(List * msg) {
 	printf("%d::", msg->data);
-	List * ptr = msg->next;
+	List * ptr = msg->prev;
 	char stream = '%';
 	while(ptr != msg) {
 		if(ptr->data < 10) {
@@ -290,7 +290,24 @@ void printMessage(List * msg) {
 			else stream = (char) (ptr->data + 55);
 			printf("%c", stream);
 		}
-		ptr = ptr->next;
+		ptr = ptr->prev;
+	}
+	printf("\n");
+	return;
+}
+
+void printMessageCorrect(List * msg) {
+	printf("%d::", msg->data);
+	List * ptr = msg->prev;
+	char stream = '%';
+	int a = (int) 'A';
+	while(ptr != msg) {
+		if(ptr->data != 26) {
+			printf("%c", (char) (ptr->data + a));
+		} else {
+			printf(" ");
+		}
+		ptr = ptr->prev;
 	}
 	printf("\n");
 	return;
@@ -535,21 +552,6 @@ List * shift(List * a, int n) {
 	return a;
 }
 
-List * base10to27(List * a) {
-	// None yet
-	// Precomputeds
-	List * base = intToList(27);
-	int k = a->data;
-	if(k<0) k*=-1;
-	k = 2*(k+1);
-	List * base_recip = NewtonRhapson(base, k);
-	List * output = init();
-
-	while(a->data != 0) {
-		
-	}
-}
-
 // Might be a bottleneck
 // To be optimized (storing powers of 27 somewhere)
 List * base27to10(List * a) {
@@ -682,7 +684,7 @@ List * modulus_alt(List * x, List * m, List * q) {
 	// r = x - qm;
 	int deletThis = 0;
 	if(q == NULL) {
-		List * q = divide(x,m,NULL,0);
+		q = divide(x,m,NULL,0);
 		deletThis = 1;
 	}
 	List * qm = mult(q,m);
@@ -1073,54 +1075,56 @@ List * modExp(List * x, List * e, List * m) {
 	return output;
 }
 
-void test() {
-	// WORKS: Reading numbers, addition, subtraction, multiplication (?)
-	// Might have bugs: Reciprocation, Division, Modulo (INC)
-	// 27 to 10
-	FILE * ftest = fopen("testmessage.txt", "r");
-	List * a = NULL;
-	List * b = NULL;
-	List * c = NULL;
-	List * d = NULL;
-	List * pm1 = NULL;
-	List * qm1 = NULL;
-	List * phin = NULL;
-	List * one = intToList(1);
-	int twoe = 0;
-	while(1) {
-		a = init();
-		b = init();
-		c = init();
-		if(feof(ftest)) break;
-		ftest = readNumber(ftest, a);
-		printf("a = ");
+List * base10to27(List * a) {
+	// None yet
+	// Precomputeds
+	List * base = intToList(27);
+	int k = a->data;
+	if(k<0) k*=-1;
+	k = 2*(k+1);
+	List * base_recip = NewtonRhapson(base, k);
+	List * output = init();
+	List * anext = a;
+	List * amod = NULL;
+
+	while(a->data != 0) {
+		anext = divide(a, base, NULL, k);
+		amod = modulus_alt(a, base, anext);
+
+		printf("a:");
 		printNumberCorrect(a);
-		if(a->data == 0) break;
-		ftest = readNumber(ftest, b);
-		printf("b = ");
-		printNumberCorrect(b);
-		if(b->data == 0) break;
-		ftest = readNumber(ftest, c);
-		pm1 = sub(a, one);
-		qm1 = sub(b, one);
-		phin = mult(pm1, qm1);
-		printf("phin = ");
-		printNumberCorrect(phin);
-		d = extendedEuclidean(c,phin);
-		printf("c = ");
-		printNumberCorrect(c);
-		printf("d = ");
-		if(d!=NULL) printNumberCorrect(d);
-		a = freeList(a);
-		b = freeList(b);
-		c = freeList(c);
-		d = freeList(d);
-		freeList(pm1);
-		freeList(qm1);
-		freeList(phin);
-		printf("\n");
+		printf("anext:");
+		printNumberCorrect(anext);
+		printf("amod:");
+		printNumberCorrect(amod);
+		output = append(output, amod->next->data);
+		freeList(a);
+		a = anext;
+		amod = freeList(amod);
 	}
-	fclose(ftest);
+
+	freeList(a);
+	freeList(base_recip);
+	freeList(base);
+	return output;
+}
+
+void test() {
+	FILE * fff = fopen("testr.txt", "r");
+	List * a = init();
+	fff = readNumber(fff, a);
+	List * b = intToList(27);
+	List * c = modulus_alt(a,b,NULL);
+	List * d = divide(a,b,NULL,0);
+	printf("a: ");
+	printNumberCorrect(a);
+	printf("b: ");
+	printNumberCorrect(b);
+	printf("c: ");
+	printNumberCorrect(c);
+	printf("d: ");
+	printNumberCorrect(d);
+	fclose(fff);
 	return;
 }
 
@@ -1254,8 +1258,18 @@ void testMem() {
 	return;
 }
 
+void testConvert() {
+	List * bten = intToList(32753918);
+	List * bconv = base10to27(bten);
+	printMessage(bconv);
+	freeList(bten);
+	freeList(bconv);
+}
+
 void main() {
 	// testing realm
+	testExp();
+	return;
 	// Declarations
 	FILE * fin;
 	FILE * fout;
@@ -1277,6 +1291,7 @@ void main() {
 	List * phin = NULL;
 	List * d = NULL;
 	List * m_raised = NULL;
+	List * m_conv = NULL;
 	
 	while(filler[0] != 'E') {
 		fin = readFiller(fin, filler);
@@ -1345,17 +1360,18 @@ void main() {
 			// Get X
 			m = init();
 			fin = readMessage(fin, m);
-			//printMessage(m);
+			printMessageCorrect(m);
 
 			// Convert to b10
 			mbten = base27to10(m);
 			m_raised = modExp(mbten, d, n);
+			m_conv = base10to27(m_raised);
 			printf("m^d mod n b10: ");
-			printNumberCorrect(m_raised);
+			printMessage(m_conv);
 
 			// free
 			freeList(mbten);
-			freeList(m_raised);
+			freeList(m_conv);
 			freeList(m);
 		} else if(filler[0] == 'A') {
 			if(d==NULL) continue;
@@ -1364,16 +1380,17 @@ void main() {
 			// Get M
 			m = init();
 			fin = readMessage(fin, m);
-			//printMessage(m);
+			printMessageCorrect(m);
 			// Convert to b10
 			mbten = base27to10(m);
 			m_raised = modExp(mbten, e, n);
+			m_conv = base10to27(m_raised);
 			printf("m^e mod n b10: ");
-			printNumberCorrect(m_raised);
+			printMessage(m_conv);
 
 			// free
 			freeList(mbten);
-			freeList(m_raised);
+			freeList(m_conv);
 			freeList(m);
 		} else if(filler[0] == 'E') {
 			// END
