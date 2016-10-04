@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #define FILLER_SIZE 50
 #define RADIX 1000
 #define RADIXSIZE 3
@@ -338,8 +339,8 @@ int compare(List * a, List * b) {
 // Computes A + B
 // O(i+j) or O(n), A has i digits; B has j digits
 List * add(List * a, List * b) {
-	if(a->data == 0) return duplicate(b);
-	if(b->data == 0) return duplicate(a);
+	//if(a->data == 0) return duplicate(b);
+	//if(b->data == 0) return duplicate(a);
 	// Instantiate atail and btail
 	List * atail = a->prev;
 	List * btail = b->prev;
@@ -1031,6 +1032,7 @@ List * multMontgoAlt(List * x, List * y, List * m, int power_r, int m_prime) {
 	int i = 0;
 	for(; i<power_r; i++) {
 		ui = m_prime*(A0->data + (xi_data * y0));
+		ui = ui % RADIX;
 		//printf("%d, %d\n", xi_data, ui);
 		xi_digit = intToList(xi_data);
 		ui_digit = intToList(ui);
@@ -1046,21 +1048,21 @@ List * multMontgoAlt(List * x, List * y, List * m, int power_r, int m_prime) {
 		//printf("presum: ");
 		//printNumberCorrect(presum);
 		A = add(Aret, presum);
-		A = shift(A, -1*power_r);
+		A = shift(A, -1);
 
 		//free
-		freeList(xi_digit);
-		freeList(ui_digit);
-		freeList(xiy);
-		freeList(uim);
-		freeList(presum);
+		xi_digit = freeList(xi_digit);
+		ui_digit = freeList(ui_digit);
+		xiy = freeList(xiy);
+		uim = freeList(uim);
+		presum = freeList(presum);
 		freeList(Aret);
 
 		//set
 		Aret = A;
 		A0 = A->next;
 		xi_data = 0;
-		if(xi != x) {
+		if(xi->next != x) {
 			xi = xi->next;
 			xi_data = xi->data;
 		}
@@ -1165,7 +1167,25 @@ List * modExp(List * x, List * e, List * m) {
 
 // REDO
 // Reduce x first
-List * modExpAlt(List * x, List * e, List * m, int power_r, int m_prime, List * rmodm, List * r2modm) {
+List * modExpAlt(List * x, List * e, List * m) {
+	// Reduce
+	x = modulus(x,m,NULL);
+	// Generate R, R2, m'
+	int power_r = m->data; // precision of R
+	if(power_r<0) power_r*=-1;
+
+	List * BASE = intToList(RADIX);
+	List * mmodb = radixModulo(m, 1);
+	List * fuck = extendedEuclidean(mmodb, BASE);
+	List * this = sub(BASE, fuck);
+	int m_prime = this->next->data;
+
+	List * R = intToList(1);
+	R = shift(R, power_r);
+	List * rmodm = modulus(R, m, NULL);
+	List * R2 = mult(rmodm, rmodm);
+	List * r2modm = modulus(R2, m, NULL);
+
 	List * x_mont = multMontgoAlt(x, r2modm, m, power_r, m_prime);
 	List * A = duplicate(rmodm);
 	List * Aret = A;
@@ -1174,30 +1194,56 @@ List * modExpAlt(List * x, List * e, List * m, int power_r, int m_prime, List * 
 	List * TWO_RECIP = intToList(500);
 	List * e_dupe = e;
 	List * eret = e;
-	while(e_dupe->data != 0) {
-		A = multMontgoAlt(A,A,m,power_r,m_prime);
-		freeList(Aret);
-		Aret = A;
-		if(e->next->data % 2 == 1) {
-			//odd
-			A = multMontgoAlt(A,x_mont,m,power_r,m_prime);
-			freeList(Aret);
-			Aret = A;
-		}
 
+	// Make a bitlist because t to 0
+	clock_t t1 = clock();
+	List * bitlist = init();
+	while(e_dupe->data != 0) {
+		bitlist = prepend(bitlist, e_dupe->next->data % 2);
 		e_dupe = mult(eret, TWO_RECIP);
 		e_dupe = shift(e_dupe, -1);
 		if(eret != e) freeList(eret);
 		eret = e_dupe;
 	}
+	clock_t t2 = clock();
+	float ds = ((float)(t2 - t1) / CLOCKS_PER_SEC ) * 1000;
+	printf("Time (bitlist): %f\n", ds);
+
+	List * ptr = bitlist->next;
+
+	// For timing
+	t1 = clock();
+	while(ptr != bitlist) {
+		A = multMontgoAlt(A,A,m,power_r,m_prime);
+		freeList(Aret);
+		Aret = A;
+		if(ptr->data == 1) {
+			//odd
+			A = multMontgoAlt(A,x_mont,m,power_r,m_prime);
+			freeList(Aret);
+			Aret = A;
+		}
+		ptr = ptr->next;
+	}
+	t2 = clock();
+	ds = ((float)(t2 - t1) / CLOCKS_PER_SEC ) * 1000;
+	printf("Time (exp): %d\n", ds);
 
 	A = multMontgoAlt(Aret,ONE,m,power_r,m_prime);
 	freeList(Aret);
 	freeList(xret);
-	freeList(x_mont);
+	//freeList(x_mont);
 	freeList(ONE);
+	freeList(BASE);
 	freeList(TWO_RECIP);
 	freeList(e_dupe);
+	freeList(mmodb);
+	freeList(fuck);
+	freeList(this);
+	freeList(R);
+	freeList(R2);
+	freeList(rmodm);
+	freeList(r2modm);
 	return A;
 }
 
@@ -1237,21 +1283,21 @@ List * base10to27(List * a) {
 }
 
 void test() {
-	FILE * fff = fopen("testr.txt", "r");
-	List * a = init();
-	fff = readNumber(fff, a);
-	List * b = intToList(27);
-	List * c = modulus_alt(a,b,NULL);
-	List * d = divide(a,b,NULL,0);
-	printf("a: ");
-	printNumberCorrect(a);
-	printf("b: ");
-	printNumberCorrect(b);
-	printf("c: ");
+	List * a = intToList(339);
+	List * m = intToList(599461);
+	List * b = intToList(12041);
+	int mexp = m->data; // precision of R
+	if(mexp<0) mexp*=-1;
+	int twoe = mexp * 2; // precision for MU
+	List * MU = NewtonRhapson(m, twoe);
+	List * m0 = modInvOfMO(m);
+	List * amg = changeToMontgo(a,m,MU);
+	List * bmg = changeToMontgo(b,m,MU);
+	List * c = multMontgo(amg, bmg, mexp, m, m0);
 	printNumberCorrect(c);
-	printf("d: ");
-	printNumberCorrect(d);
-	fclose(fff);
+
+	List * c2 = multMontgoAlt(a,b,m,mexp,859);
+	printNumberCorrect(c2);
 	return;
 }
 
@@ -1266,37 +1312,97 @@ void testMem() {
 }
 
 void testMontgo() {
-	List * m = intToList(72639);
-	List * x = intToList(5792);
-	List * e = intToList(11);
+	List * m = intToList(2101591);
+	List * x = intToList(13019);
+	List * e = intToList(395);
+	/*
 	List * ONE = intToList(1);
-	int n = 2;
-	int mp = 1000 - 759;
-	List * R = intToList(1000000);
+	List * BASE = intToList(RADIX);
+	int mexp = m->data; // precision of R
+	if(mexp<0) mexp*=-1;
+	int twoe = mexp * 2; // precision for MU
+	List * MU = NewtonRhapson(m, twoe);
+	int n = mexp;
+
+	List * mmodb = radixModulo(m, 1);
+	List * fuck = extendedEuclidean(mmodb, BASE);
+	List * this = sub(BASE, fuck);
+	int mp = this->next->data;
+	List * R = intToList(1);
+	R = shift(R, mexp);
 	List * Rmod = modulus(R, m, NULL);
-	List * R2mod = multMontgoAlt(Rmod, Rmod, m, n, mp);
-	List * montgo = modExpAlt(x,e,m,n,mp,Rmod,R2mod);
+	List * R2 = mult(Rmod, Rmod);
+	List * R2mod = modulus(R2, m, NULL);
+	printf("mp=%d\n", mp);
+	*/
+
+	List * montgo = modExpAlt(x,e,m);
 	printNumberCorrect(montgo);
-	List * montgored = modulus(montgo, m, NULL);
-	List * toM = multMontgoAlt(montgo, R2mod, m, n, mp);
-	List * fromM = multMontgoAlt(montgo, ONE, m, n, mp);
-	printNumberCorrect(toM);
-	printNumberCorrect(fromM);
 	freeList(x);
 	freeList(e);
 	freeList(m);
 	freeList(montgo);
+	/*
 	freeList(toM);
 	freeList(fromM);
 	freeList(R);
 	freeList(Rmod);
 	freeList(R2mod);
+	freeList(ONE);
+	*/
+	return;
+}
+
+void testMontRed() {
+	List * m = intToList(910851);
+	List * x = intToList(10582);
+	List * BASE = intToList(RADIX);
+	int mexp = m->data; // precision of R
+	if(mexp<0) mexp*=-1;
+	int twoe = mexp * 2; // precision for MU
+	List * MU = NewtonRhapson(m, twoe);
+	int n = mexp;
+	List * fuck = extendedEuclidean(m, BASE);
+	List * this = sub(BASE, fuck);
+	int mp = this->next->data;
+	List * R = intToList(1000000);
+	List * Rmod = modulus(R, m, NULL);
+	printf("mp=%d\n", mp);
+	printNumberCorrect(Rmod);
+	List * R2 = mult(Rmod,Rmod);
+	List * R2mod = modulus(R2, m, NULL);
+	printNumberCorrect(R2mod);
+	List * x_mont1 = changeToMontgo(x,m,MU);
+	printf("x1=");
+	printNumberCorrect(x_mont1);
+	List * x_mont2 = multMontgoAlt(x,R2mod,m,mexp,mp);
+	printf("x2=");
+	printNumberCorrect(x_mont2);
+}
+
+void testexp() {
+	List * x = intToList(1023);
+	List * e = intToList(39);
+	List * m = intToList(9923);
+	List * a = modExp(x,e,m);
+	printNumberCorrect(a);
+	List * b = modExpAlt(x,e,m);
+	printNumberCorrect(b);
+	return;
+}
+
+void testMod() {
+	FILE * ftest = fopen("tmod.txt", "r");
+	List * x = init();
+	List * m = init();
+	ftest = readNumber(ftest, x);
+	ftest = readNumber(ftest, m);
+	List * xm = modulus(x,m,NULL);
+	printNumberCorrect(xm);
 	return;
 }
 
 void main() {
-	testMontgo();
-	return;
 	// Declarations
 	FILE * fin;
 	FILE * fout;
@@ -1391,7 +1497,7 @@ void main() {
 
 			// Convert to b10
 			mbten = base27to10(m);
-			m_raised = modExp(mbten, d, n);
+			m_raised = modExpAlt(mbten, d, n);
 			m_conv = base10to27(m_raised);
 			printf("m^d mod n b10: ");
 			printMessageCorrect(m_conv);
@@ -1410,7 +1516,7 @@ void main() {
 			//printMessageCorrect(m);
 			// Convert to b10
 			mbten = base27to10(m);
-			m_raised = modExp(mbten, e, n);
+			m_raised = modExpAlt(mbten, e, n);
 			m_conv = base10to27(m_raised);
 			printf("m^e mod n b10: ");
 			printMessageCorrect(m_conv);
