@@ -94,6 +94,8 @@ List * intToList(int n) {
 	while(n > 0) {
 		// mod = n % RADIX; // Ones digit
 		modu = mod(n, RADIX);
+		//printf("%d: ", modu);
+		//printNumberCorrect(output);
 		output = append(output, modu);
 		n = n / RADIX; // Remainder
 	}
@@ -336,6 +338,8 @@ int compare(List * a, List * b) {
 // Computes A + B
 // O(i+j) or O(n), A has i digits; B has j digits
 List * add(List * a, List * b) {
+	if(a->data == 0) return duplicate(b);
+	if(b->data == 0) return duplicate(a);
 	// Instantiate atail and btail
 	List * atail = a->prev;
 	List * btail = b->prev;
@@ -1009,6 +1013,66 @@ List * multMontgo(List * xl, List * yl, int power_r, List * m, List * m0_recip) 
 	return productl;
 }
 
+// REDO
+// Reduce x and y first
+List * multMontgoAlt(List * x, List * y, List * m, int power_r, int m_prime) {
+	List * A = init();
+	List * Aret = A;
+	List * A0 = A->next;
+	List * xi = x->next;
+	List * xi_digit = NULL;
+	List * ui_digit = NULL;
+	List * xiy = NULL;
+	List * uim = NULL;
+	List * presum = NULL;
+	int xi_data = xi->data;
+	int y0 = y->next->data;
+	int ui = 0;
+	int i = 0;
+	for(; i<power_r; i++) {
+		ui = m_prime*(A0->data + (xi_data * y0));
+		//printf("%d, %d\n", xi_data, ui);
+		xi_digit = intToList(xi_data);
+		ui_digit = intToList(ui);
+		//printNumberCorrect(xi_digit);
+		//printNumberCorrect(y);
+		xiy = mult(xi_digit, y);
+		uim = mult(ui_digit, m);
+		presum = add(xiy, uim);
+		//printf("xiy: ");
+		//printNumberCorrect(xiy);
+		//printf("uim: ");
+		//printNumberCorrect(uim);
+		//printf("presum: ");
+		//printNumberCorrect(presum);
+		A = add(Aret, presum);
+		A = shift(A, -1*power_r);
+
+		//free
+		freeList(xi_digit);
+		freeList(ui_digit);
+		freeList(xiy);
+		freeList(uim);
+		freeList(presum);
+		freeList(Aret);
+
+		//set
+		Aret = A;
+		A0 = A->next;
+		xi_data = 0;
+		if(xi != x) {
+			xi = xi->next;
+			xi_data = xi->data;
+		}
+	}
+
+	if(compare(A,m) >= 0) {
+		A = sub(Aret, m);
+		freeList(Aret);
+	}
+	return A;
+}
+
 // BOIIIIIII
 // Returns FINAL PRODUCT
 // VERIFICATION???????
@@ -1099,6 +1163,44 @@ List * modExp(List * x, List * e, List * m) {
 	return output;
 }
 
+// REDO
+// Reduce x first
+List * modExpAlt(List * x, List * e, List * m, int power_r, int m_prime, List * rmodm, List * r2modm) {
+	List * x_mont = multMontgoAlt(x, r2modm, m, power_r, m_prime);
+	List * A = duplicate(rmodm);
+	List * Aret = A;
+	List * xret = x_mont;
+	List * ONE = intToList(1);
+	List * TWO_RECIP = intToList(500);
+	List * e_dupe = e;
+	List * eret = e;
+	while(e_dupe->data != 0) {
+		A = multMontgoAlt(A,A,m,power_r,m_prime);
+		freeList(Aret);
+		Aret = A;
+		if(e->next->data % 2 == 1) {
+			//odd
+			A = multMontgoAlt(A,x_mont,m,power_r,m_prime);
+			freeList(Aret);
+			Aret = A;
+		}
+
+		e_dupe = mult(eret, TWO_RECIP);
+		e_dupe = shift(e_dupe, -1);
+		if(eret != e) freeList(eret);
+		eret = e_dupe;
+	}
+
+	A = multMontgoAlt(Aret,ONE,m,power_r,m_prime);
+	freeList(Aret);
+	freeList(xret);
+	freeList(x_mont);
+	freeList(ONE);
+	freeList(TWO_RECIP);
+	freeList(e_dupe);
+	return A;
+}
+
 List * base10to27(List * a) {
 	// None yet
 	// Precomputeds
@@ -1163,7 +1265,38 @@ void testMem() {
 	return;
 }
 
+void testMontgo() {
+	List * m = intToList(72639);
+	List * x = intToList(5792);
+	List * e = intToList(11);
+	List * ONE = intToList(1);
+	int n = 2;
+	int mp = 1000 - 759;
+	List * R = intToList(1000000);
+	List * Rmod = modulus(R, m, NULL);
+	List * R2mod = multMontgoAlt(Rmod, Rmod, m, n, mp);
+	List * montgo = modExpAlt(x,e,m,n,mp,Rmod,R2mod);
+	printNumberCorrect(montgo);
+	List * montgored = modulus(montgo, m, NULL);
+	List * toM = multMontgoAlt(montgo, R2mod, m, n, mp);
+	List * fromM = multMontgoAlt(montgo, ONE, m, n, mp);
+	printNumberCorrect(toM);
+	printNumberCorrect(fromM);
+	freeList(x);
+	freeList(e);
+	freeList(m);
+	freeList(montgo);
+	freeList(toM);
+	freeList(fromM);
+	freeList(R);
+	freeList(Rmod);
+	freeList(R2mod);
+	return;
+}
+
 void main() {
+	testMontgo();
+	return;
 	// Declarations
 	FILE * fin;
 	FILE * fout;
