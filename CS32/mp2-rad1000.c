@@ -719,7 +719,7 @@ List * radixModulo(List * x, int power_m) {
 // Returns r = x mod m
 // Does Barrett Reduction if necessarcy
 // BARRETTS ONLY WORKS FOR x < m^2 TAKE NOTE OF THIS
-List * modulus(List * x, List * m, List * mu) {
+List * modulusBarrett(List * x, List * m, List * mu) {
 	int deletThis = 0;
 	if(x->data < 0) {
 		List * xnew = x;
@@ -735,8 +735,8 @@ List * modulus(List * x, List * m, List * mu) {
 	if(x->data >= 2*(m->data)-1) {
 		// Barrett won't work
 		//printf("bro you just got Z E E ' D\n");
-		List * output = modulus_alt(x, m, NULL);
-		return output;
+		//List * output = modulus_alt(x, m, NULL);
+		//return output;
 	}
 	// Get k
 	int k = m->data;
@@ -793,8 +793,40 @@ List * modulus(List * x, List * m, List * mu) {
 	return r3;
 }
 
+List * modulus(List * x, List * m, List * mu) {
+	if(x->data < 0) { // If x < 0 (TO BE OPTIMIZED)
+		List * xnew = x;
+		List * xret = x;
+		while(xnew->data < 0) {
+			xnew = add(xnew,m);
+			if(xret != x)freeList(xret);
+			xret = xnew;
+		}
+		return xnew;
+	}
+	if(compare(m, x) >= 0) return duplicate(x); // If x < m
+	/*
+	if(x->data >= 2*(m->data)-1) {
+		// Barrett won't work
+		//printf("bro you just got Z E E ' D\n");
+		List * output = modulus_alt(x, m, NULL);
+		return output;
+	}
+	*/
+	List * tmpmod = modulusBarrett(x,m,mu);
+	List * tmpret = tmpmod;
+	while(compare(tmpmod, m) > 0) {
+		// Do barrett again
+		tmpmod = modulusBarrett(x,m,mu);
+		freeList(tmpret);
+		tmpret = tmpmod;
+	}
+	return tmpmod;
+}
+
 // O(3n^3 + 10n^2) or O(n^3) where n = number of digits
 // Takes in e and phin s.t. e*x + phin*y = 1, returns x
+// THIS MOTHERFUCKER
 List * extendedEuclidean(List * e, List * phin) {
 	List * t = intToList(0);
 	List * newt = intToList(1);
@@ -850,6 +882,7 @@ List * extendedEuclidean(List * e, List * phin) {
 // O(n^3)
 // MONTGOMERY FUNCTIONS
 // Precompute ModInv of R mod m
+// WEIRDLY SLOWER THAN USUAL
 List * modInvOfR(List * m) {
 	int power_r = m->data;
 	if(power_r < 0) power_r *= -1;
@@ -990,13 +1023,12 @@ List * modExp(List * x, List * e, List * m) {
 	if(mexp<0) mexp*=-1;
 	int twoe = mexp * 2; // precision for MU
 	List * MU = NewtonRhapson(m, twoe);
-	List * TWO = intToList(2);
-	List * ONE = intToList(1);
 	int twoprec = e->data; // precision for div by 2
 	if(twoprec < 0) twoprec *= -1;
 	twoprec = (twoprec+1) * 2; // precise german engineering
-	List * TWO_RECIP = NewtonRhapson(TWO, twoprec); // Precomputed
-	List * TWO_RECIP_TRUE = add(TWO_RECIP, ONE);
+	//List * TWO_RECIP = NewtonRhapson(TWO, twoprec); // Precomputed
+	//List * TWO_RECIP_TRUE = add(TWO_RECIP, ONE);
+	List * TWO_RECIP = intToList(500);
 	List * product = intToList(1); // y
 	int lastdig = 0;
 
@@ -1043,7 +1075,11 @@ List * modExp(List * x, List * e, List * m) {
 			//printNumberCorrect(e);
 		}
 		xl = multMontgo(xret, xret, mexp, m, MO);
-		e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
+		freeList(xret);
+		//e = divide(eret, TWO, TWO_RECIP_TRUE, twoprec);
+		// Do the special div by 2 here
+		e = mult(eret, TWO_RECIP);
+		e = shift(e, -1);
 		if(eret != eorig) freeList(eret);
 	}
 
@@ -1055,10 +1091,10 @@ List * modExp(List * x, List * e, List * m) {
 	freeList(RINV);
 	freeList(MO);
 	freeList(MU);
-	freeList(TWO);
-	freeList(ONE);
+	//freeList(TWO);
+	//freeList(ONE);
 	freeList(TWO_RECIP);
-	freeList(TWO_RECIP_TRUE);
+	//freeList(TWO_RECIP_TRUE);
 	freeList(product);
 	return output;
 }
@@ -1117,6 +1153,16 @@ void test() {
 	return;
 }
 
+void testMem() {
+	List * a = intToList(224241);
+	List * b = intToList(2011960);
+	List * c = changeToMontgo(b,a,NULL);
+	freeList(a);
+	freeList(b);
+	freeList(c);
+	return;
+}
+
 void main() {
 	// Declarations
 	FILE * fin;
@@ -1165,27 +1211,27 @@ void main() {
 			fin = readNumber(fin, e);
 
 			//Check if tama pagkabasa
-			printf("/%s\\\n", filler);
-			printNumberCorrect(p);
-			printNumberCorrect(q);
-			printNumberCorrect(e);
-			printf("\\******/\n");
+			//printf("/%s\\\n", filler);
+			//printNumberCorrect(p);
+			//printNumberCorrect(q);
+			//printNumberCorrect(e);
+			//printf("\\******/\n");
 
 			// Get n
 			n = mult(p,q);
-			printf("n = ");
-			printNumberCorrect(n);
+			//printf("n = ");
+			//printNumberCorrect(n);
 
 			// Get phi(n)
 			pmo = sub(p, one);
 			qmo = sub(q, one);
-			printf("p-1 = ");
-			printNumberCorrect(pmo);
-			printf("q-1 = ");
-			printNumberCorrect(qmo);
+			//printf("p-1 = ");
+			//printNumberCorrect(pmo);
+			//printf("q-1 = ");
+			//printNumberCorrect(qmo);
 			phin = mult(pmo, qmo);
-			printf("phi(n) = ");
-			printNumberCorrect(phin);
+			//printf("phi(n) = ");
+			//printNumberCorrect(phin);
 
 			// Get d
 			d = extendedEuclidean(e, phin);
@@ -1196,8 +1242,8 @@ void main() {
 				phin = freeList(phin);
 				continue;
 			}
-			printf("d = ");
-			printNumberCorrect(d);
+			//printf("d = ");
+			//printNumberCorrect(d);
 			pmo = freeList(pmo);
 			qmo = freeList(qmo);
 			phin = freeList(phin);
