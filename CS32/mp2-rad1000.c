@@ -229,16 +229,28 @@ FILE * readMessage(FILE * fin, List * list) {
 	// Declarations
 	int stream = -1;
 	stream = fgetc(fin);
-	while(stream != 116 && stream != 10 && stream != 102) { //116: t; 10: \n
+	while(stream != 10) { //116: t; 10: \n
 		if(feof(fin)) break;
 		if(stream > 64 && stream < 91) {
 			stream -= 65;
+		} else if(stream > 96 && stream < 123) {
+			stream -= 97;
 		} else if(stream == 32) {
 			// space
 			stream = 26;
 		}
 		list = prepend(list, stream);
 		stream = fgetc(fin);
+	}
+
+	int c = 0;
+	// Remove the shit
+	if(list->next->data == 1) {
+		// remove " to Bob"
+		for(;c<7;c++) list = deleteRight(list);
+	} else if(list->next->data == 4) {
+		// remove " from Alice"
+		for(;c<11;c++) list = deleteRight(list);
 	}
 
 	//Remove trailing whitespace
@@ -304,7 +316,7 @@ void printMessage(List * msg) {
 }
 
 void printMessageCorrect(List * msg) {
-	printf("%d::", msg->data);
+	//printf("%d::", msg->data);
 	List * ptr = msg->prev;
 	char stream = '%';
 	int a = (int) 'A';
@@ -318,6 +330,23 @@ void printMessageCorrect(List * msg) {
 	}
 	printf("\n");
 	return;
+}
+
+FILE * printMessageFile(List * msg, FILE * f) {
+	//printf("%d::", msg->data);
+	List * ptr = msg->prev;
+	char stream = '%';
+	int a = (int) 'A';
+	while(ptr != msg) {
+		if(ptr->data != 26) {
+			fprintf(f, "%c", (char) (ptr->data + a));
+		} else {
+			fprintf(f, " ");
+		}
+		ptr = ptr->prev;
+	}
+	fprintf(f, "\n");
+	return f;
 }
 
 // Compares A and B (+ if A is bigger, - if B is bigger, 0 otherwise)
@@ -526,6 +555,30 @@ List * mult(List * a, List * b) {
 
 	// Set if positive or negative (NONE YET)
 	if((a->data < 0) ^ (b->data < 0)) product->data *= -1;
+	return product;
+}
+
+List * sp_mult(List * a, int b) {
+	// If one of them is 0
+	if(a->data == 0 || b == 0) return init();
+	// Worry about signs and combing out the product later
+	int t = 0; // Product of digits
+	int c = 0; // Carryover
+
+	List * product = init();
+	List * pj = product;
+	List * ai = a->next;
+	while(ai != a) {
+		t = (ai->data)*b + c;
+		c = t / RADIX;
+		t = mod(t, RADIX);
+		product = append(product, t);
+		ai = ai->next;
+	}
+
+	if(c != 0) product = append(product, c);
+	// Set if positive or negative (NONE YET)
+	if((a->data < 0) ^ (b < 0)) product->data *= -1;
 	return product;
 }
 
@@ -1021,8 +1074,8 @@ List * multMontgoAlt(List * x, List * y, List * m, int power_r, int m_prime) {
 	List * Aret = A;
 	List * A0 = A->next;
 	List * xi = x->next;
-	List * xi_digit = NULL;
-	List * ui_digit = NULL;
+	//List * xi_digit = NULL;
+	//List * ui_digit = NULL;
 	List * xiy = NULL;
 	List * uim = NULL;
 	List * presum = NULL;
@@ -1034,12 +1087,14 @@ List * multMontgoAlt(List * x, List * y, List * m, int power_r, int m_prime) {
 		ui = m_prime*(A0->data + (xi_data * y0));
 		ui = ui % RADIX;
 		//printf("%d, %d\n", xi_data, ui);
-		xi_digit = intToList(xi_data);
-		ui_digit = intToList(ui);
+		//xi_digit = intToList(xi_data);
+		//ui_digit = intToList(ui);
 		//printNumberCorrect(xi_digit);
 		//printNumberCorrect(y);
-		xiy = mult(xi_digit, y);
-		uim = mult(ui_digit, m);
+		//xiy = mult(y, xi_digit);
+		//uim = mult(m, ui_digit);
+		xiy = sp_mult(y, xi_data);
+		uim = sp_mult(m, ui);
 		presum = add(xiy, uim);
 		//printf("xiy: ");
 		//printNumberCorrect(xiy);
@@ -1051,8 +1106,8 @@ List * multMontgoAlt(List * x, List * y, List * m, int power_r, int m_prime) {
 		A = shift(A, -1);
 
 		//free
-		xi_digit = freeList(xi_digit);
-		ui_digit = freeList(ui_digit);
+		//xi_digit = freeList(xi_digit);
+		//ui_digit = freeList(ui_digit);
 		xiy = freeList(xiy);
 		uim = freeList(uim);
 		presum = freeList(presum);
@@ -1227,7 +1282,7 @@ List * modExpAlt(List * x, List * e, List * m) {
 	}
 	t2 = clock();
 	ds = ((float)(t2 - t1) / CLOCKS_PER_SEC ) * 1000;
-	printf("Time (exp): %d\n", ds);
+	printf("Time (exp): %f\n", ds);
 
 	A = multMontgoAlt(Aret,ONE,m,power_r,m_prime);
 	freeList(Aret);
@@ -1283,21 +1338,17 @@ List * base10to27(List * a) {
 }
 
 void test() {
-	List * a = intToList(339);
-	List * m = intToList(599461);
-	List * b = intToList(12041);
-	int mexp = m->data; // precision of R
-	if(mexp<0) mexp*=-1;
-	int twoe = mexp * 2; // precision for MU
-	List * MU = NewtonRhapson(m, twoe);
-	List * m0 = modInvOfMO(m);
-	List * amg = changeToMontgo(a,m,MU);
-	List * bmg = changeToMontgo(b,m,MU);
-	List * c = multMontgo(amg, bmg, mexp, m, m0);
-	printNumberCorrect(c);
-
-	List * c2 = multMontgoAlt(a,b,m,mexp,859);
-	printNumberCorrect(c2);
+	FILE * ftest = fopen("msg.txt", "r");
+	List * m = NULL;
+	char fil[50];
+	while(1) {
+		m = init();
+		ftest = readFiller(ftest, fil);
+		ftest = readMessage(ftest, m);
+		if(m->data == 0) break;
+		printMessageCorrect(m);
+		freeList(m);
+	}
 	return;
 }
 
@@ -1402,6 +1453,14 @@ void testMod() {
 	return;
 }
 
+void testspm() {
+	List * a = intToList(235101);
+	int b = 204;
+	List * c = sp_mult(a,b);
+	printNumberCorrect(c);
+	return;
+}
+
 void main() {
 	// Declarations
 	FILE * fin;
@@ -1425,11 +1484,14 @@ void main() {
 	List * d = NULL;
 	List * m_raised = NULL;
 	List * m_conv = NULL;
+
+	char CASE[10];
 	
 	while(filler[0] != 'E') {
 		fin = readFiller(fin, filler);
 		//printf("/%s\\\n", filler);
 		if(filler[0] == 'C') {
+			fprintf(fout, "%s\n", filler);
 			//Case input
 			// Reset p,q,e
 			p = freeList(p);
@@ -1475,7 +1537,7 @@ void main() {
 			// Get d
 			d = extendedEuclidean(e, phin);
 			if(d == NULL) {
-				printf("Invalid e\n");
+				fprintf(fout, "Invalid encryption key\n");
 				pmo = freeList(pmo);
 				qmo = freeList(qmo);
 				phin = freeList(phin);
@@ -1499,8 +1561,9 @@ void main() {
 			mbten = base27to10(m);
 			m_raised = modExpAlt(mbten, d, n);
 			m_conv = base10to27(m_raised);
-			printf("m^d mod n b10: ");
-			printMessageCorrect(m_conv);
+			//printf("m^d mod n b10: ");
+			fprintf(fout, "Bob received: ");
+			fout = printMessageFile(m_conv, fout);
 
 			// free
 			freeList(mbten);
@@ -1518,8 +1581,9 @@ void main() {
 			mbten = base27to10(m);
 			m_raised = modExpAlt(mbten, e, n);
 			m_conv = base10to27(m_raised);
-			printf("m^e mod n b10: ");
-			printMessageCorrect(m_conv);
+			//printf("m^e mod n b10: ");
+			fprintf(fout, "Alice sent: ");
+			fout = printMessageFile(m_conv, fout);
 
 			// free
 			freeList(mbten);
