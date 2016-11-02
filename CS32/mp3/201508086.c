@@ -53,7 +53,7 @@ void freeList(List * l) {
 }
 
 int main() {
-	FILE * fin = fopen("case.txt", "r");
+	FILE * fin = fopen("input.txt", "r");
 	FILE * fout = fopen("out2.txt", "w");
 	int m, A = 0, m_orig, n, s;
 	char lc;
@@ -111,6 +111,7 @@ int main() {
 		// Actually do shit
 		//printPortfolio(portfolio);
 		for(i=0; i<A; i++) {
+			if(i >= 2) break; // 0 1 LIMIT lmao
 			// Buy A shares until it reaches the optimal portfolio + initial portfolio
 			// or until it breaks optimality
 			stockChoice = NULL;
@@ -161,10 +162,11 @@ int main() {
 				break;
 			}
 			//printf("\n");
-			if(m==353) printPortfolio(portfolio);
 		}
 		//printf("%d\n", i == A ? -1 : i);
 		if(i == A) {
+			fprintf(fout, "NO LIMIT\n");
+		} else if(i >= 2) {
 			fprintf(fout, "NO LIMIT\n");
 		} else {
 			fprintf((fout), "%d\n", i);

@@ -180,10 +180,6 @@ void main() {
 			// Get the next in line
 			heapify(pf, 1, n, m);
 			updateVars(&(pf[0]), m); // Just in case
-			if(m==239 || m==238) {
-				printf("m=%d\n", m);
-				printPortfolio(pf, n);
-			}
 			//printf("\n");
 		}
 		//printf("%d\n", m >= A + m_orig ? -1 : m-m_orig-2);
