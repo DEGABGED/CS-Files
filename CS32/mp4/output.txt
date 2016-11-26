@@ -1,0 +1,4 @@
+Case 1: 90
+Case 2: 27
+Case 3: 38
+Case 4: Gasoline stations not enough
