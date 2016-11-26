@@ -5,6 +5,8 @@
 typedef struct Station {
 	double dist;
 	double price;
+	int status; // shortest distance already found: 1
+	int label; // 0: origin, 1: nearest to origin, etc.
 } Station;
 
 typedef struct Edge {
@@ -19,6 +21,13 @@ typedef struct AdjList {
 	Edge * adj_list;
 	struct AdjList * next;
 } AdjList;
+
+typedef struct PQ {
+	int size;
+	AdjList * heap;
+	int index; // index[Station.label] = ndx in heap
+	double * key; // distance; or price * dist * mileage
+} PQ;
 
 AdjList * insert(AdjList * AL, double dist, double price,
 		double edge_low, double edge_high) {
