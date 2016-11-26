@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define INF 0x7ff0000000000000
 
 typedef struct Station {
 	double dist;
@@ -17,6 +18,7 @@ typedef struct Edge {
 } Edge;
 
 typedef struct AdjList {
+	int label; // place in index of adjlist
 	Station * cur_station; // Pointer to actual Station data
 	Edge * adj_list; // Array of edges
 	//struct AdjList * next; // we usin arrays now boi
@@ -25,11 +27,61 @@ typedef struct AdjList {
 } AdjList;
 
 typedef struct PQ {
+	// NOTE: everything about pq is 1-indexed!!!
 	int size;
-	AdjList * heap;
-	int index; // index[Station.label] = ndx in heap
-	double * key; // distance; or price * dist * mileage
+	int * heap; // AdjList 1=1 Station
+	int * index; // index[Station.label] = ndx in heap
+	double * key; // cost; or price * dist * mileage
 } PQ;
+
+// PQ algorithms in the book
+void heapify(PQ * pq_ptr, int r) { // Adjust in brackets, not in code
+	PQ pq = *pq_ptr;
+	double k = pq.key[pq.heap[r-1]]; // key of root of heap
+	int l = pq.heap[r-1]; // root of heap
+	int i = r; // i starts at root
+	int j = 2*i; // j starts at left subtree root
+	while(j <= pq.size) { // 0-indexed
+		if(j < pq.size && pq.key[pq.heap[j]-1] < pq.key[pq.heap[j-1]-1]) {
+			j++; // j becomes lesser of 2 subtree roots
+		}
+		if(pq.key[pq.heap[j-1]-1] < k) { // if j < i
+			pq.heap[i-1] = pq.heap[j-1]; // switch i and j in heap
+			pq.index[pq.heap[j-1]-1] = i; // update position of j node
+			i = j; // set i to be the node j it switched with
+			j = 2*i; // set j to be left subtree root
+		} else {
+			break;
+		}
+	}
+	pq.heap[i-1] = l; // set i to be the initial root of heap
+	pq.index[l-1] = i; // update position of root of heap
+}
+
+int extract_min(PQ * pq_ptr) {
+	PQ pq = *pq_ptr;
+	if(pq.size == 0) return -1;
+	int j = pq.heap[0];
+	pq.heap[0] = pq.heap[pq.size - 1];
+	pq.index[pq.heap[0]-1] = 1;
+	pq.size--;
+	heapify(&pq, 1);
+}
+
+void decrease_key(PQ * pq_ptr, int l, double newkey) {
+	PQ pq = *pq_ptr;
+	pq.key[l-1] = newkey;
+	int i = pq.index[l-1];
+	int j = i/2;
+	while(i > 1 && pq.key[pq.heap[j-1]-1] > newkey) {
+		pq.heap[i-1] = pq.heap[j-1];
+		pq.index[pq.heap[j-1]-1] = i;
+		i = j;
+		j = i/2;
+	}
+	pq.heap[i-1] = l;
+	pq.index[l-1] = i;
+}
 
 void printGraph(AdjList * G, int station_num) {
 	int i,j;
@@ -116,13 +168,15 @@ int main() {
 	FILE * fout;
 	fin = fopen("input.txt", "r");
 	fout = fopen("201508086.txt", "w");
-	int case_num, station_num, i, j;
+	int case_num, station_num, i, j, flag;
 	double total_dist, fuel_cap, mileage, min_dist,
 		   max_dist, initial_cost, s_dist, s_price;
 	AdjList * G = NULL;
+	PQ pq;
 	while(1) {
 		// Get initial values
 		G = NULL;
+		flag = 1;
 		if(fscanf(fin, "%d\n", &case_num) == EOF) break;
 		fscanf(fin, "%lf\n%lf %lf %lf %d\n",
 				&total_dist, &fuel_cap, &mileage,
@@ -130,15 +184,29 @@ int main() {
 		max_dist = fuel_cap * mileage;
 		min_dist = max_dist / 0.5; // Must expend half its tank before stopping
 
-		// Set the structures, Insert the Origin
+		// Set the structures
 		G = (AdjList*) malloc(sizeof(AdjList) * (station_num + 2));
+		pq.heap = (int*) malloc(sizeof(int) * (station_num + 2));
+		pq.key = (double*) malloc(sizeof(double) * (station_num + 2));
+		pq.index = (int*) malloc(sizeof(int) * (station_num + 2));
+		pq.size = station_num + 2;
+		
+		// Insert the origin
 		createAdjList(G, 0, initial_cost, 0, station_num + 1);
+		G[0].label = 0;
+		pq.heap[0] = 1;
+		pq.index[0] = 1;
+		pq.key[0] = 0;
 
 		// Insert the succeeding stations
 		for(i=1; i<=station_num; i++) {
 			fscanf(fin, "%lf %lf", &s_dist, &s_price);
 			//G = insert(G, s_dist, s_price, max_dist, min_dist);
 			createAdjList(G+i, s_dist, s_price, 1, station_num + 1 - i);
+			G[i].label = i;
+			pq.heap[i] = i+1;
+			pq.index[i] = i+1;
+			pq.key[i] = INF;
 
 			// Add the stuff to the rest of the G
 			for(j=0; j<i; j++) {
@@ -149,6 +217,11 @@ int main() {
 
 		// Insert the destination
 		createAdjList(G+station_num+1, total_dist, 0, -1, 0);
+		G[station_num+1].label = station_num+1;
+		pq.heap[station_num+1] = station_num+2;
+		pq.index[station_num+1] = station_num+2;
+		pq.key[station_num+1] = INF;
+
 		// Add the destination to the rest of the adj_lists
 		for(i=0; i<=station_num; i++) {
 			createEdge(G+i, G[station_num+1].cur_station);
@@ -161,6 +234,10 @@ int main() {
 		printGraph(G, station_num);
 
 		// Actual Dijkstra's
+		while(flag != 0) {
+			// call extract_min
+			break; // for now
+		}
 
 		// Free G
 		for(i=0; i<station_num+2; i++) {
@@ -169,6 +246,10 @@ int main() {
 		}
 		free(G);
 	}
+
+	// check correctness of macro
+	double x = INF;
+	printf("inf: %lf\n", x);
 
 	// Ending
 	fclose(fin);
