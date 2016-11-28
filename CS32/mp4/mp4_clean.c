@@ -66,7 +66,7 @@ int extract_min(PQ * pq) {
 	pq->index[pq->heap[0]-1] = 1;
 	pq->size--;
 	heapify(pq, 1);
-	printf("PQ now size %d\n", pq->size);
+	//printf("PQ now size %d\n", pq->size);
 	return j;
 }
 
@@ -131,7 +131,9 @@ void createAdjList(AdjList * aj, double dist, double price,
 	aj->adj_list_max = adj_list_max;
 }
 
-void createEdge(AdjList * aj, Station * adj_station) {
+void createEdge(AdjList * aj, Station * adj_station, double max_dist) {
+	// If the distance is too big just quit rn smh tbh fam
+	if(adj_station->dist - aj->cur_station->dist > max_dist) return;
 	int ndx = aj->adj_list_size;
 	// Add the edge
 	aj->adj_list[ndx].adj_station = adj_station;
@@ -140,40 +142,6 @@ void createEdge(AdjList * aj, Station * adj_station) {
 	// Adjust the adj_list_size
 	aj->adj_list_size++;
 }
-
-/*
-AdjList * insert(AdjList * AL, double dist, double price,
-		double edge_low, double edge_high) {
-	// AL won't be null
-	// Create a new Station
-	Station * s = (Station*) malloc(sizeof(Station));
-	s->dist = dist;
-	s->price = price;
-
-	// Create new edges for the previous nodes
-	AdjList * ptr = AL;
-	AdjList * b_ptr = NULL;
-	Edge * e = NULL;
-	while(ptr != NULL) {
-		// Add edge to current station
-		e = ptr->adj_list;
-		ptr->adj_list = (Edge*) malloc(sizeof(Edge));
-		ptr->adj_list->adj_station = s;
-		ptr->adj_list->cur_station = ptr->cur_station;
-		ptr->adj_list->dist_from_cur = s->dist - ptr->cur_station->dist;
-		ptr->adj_list->next = e;
-		// go to next station; keep track of previous for insertion
-		b_ptr = ptr;
-		ptr = ptr->next;
-	}
-
-	// Create new entry for the station
-	AdjList * out = (AdjList*) malloc(sizeof(AdjList));
-	out->cur_station = s;
-	out->adj_list = NULL;
-	b_ptr->next = out;
-	return AL;
-}*/
 
 int roundTo(double n) {
 	int output = (int) n;
@@ -185,11 +153,14 @@ int roundTo(double n) {
 int main() {
 	FILE * fin;
 	FILE * fout;
-	fin = fopen("mp4.txt", "r");
-	fout = fopen("201508086.txt", "w");
+	fin = fopen("mp4_large.txt", "r");
+	fout = fopen("201508086_test.txt", "w");
 	int case_num, station_num, i, j, flag;
 	double total_dist, fuel_cap, mileage, min_dist,
 		   max_dist, initial_cost, s_dist, s_price, total_price;
+	// For use in the loop
+	int min_v, u, v, cost;
+	double newval, newdist;
 	AdjList * G = NULL;
 	PQ pq;
 	while(1) {
@@ -197,11 +168,12 @@ int main() {
 		G = NULL;
 		flag = 1;
 		if(fscanf(fin, "%d\n", &case_num) == EOF) break;
+		if(case_num > 1) fprintf(fout, "\n");
 		fscanf(fin, "%lf\n%lf %lf %lf %d\n",
 				&total_dist, &fuel_cap, &mileage,
 				&initial_cost, &station_num);
 		max_dist = fuel_cap * mileage;
-		min_dist = max_dist / 0.5; // Must expend half its tank before stopping
+		min_dist = max_dist * 0.5; // Must expend half its tank before stopping
 		total_price += initial_cost;
 
 		// Set the structures
@@ -224,7 +196,6 @@ int main() {
 		// Insert the succeeding stations
 		for(i=1; i<=station_num; i++) {
 			fscanf(fin, "%lf %lf", &s_dist, &s_price);
-			//G = insert(G, s_dist, s_price, max_dist, min_dist);
 			s_price /= 100;
 			createAdjList(G+i, s_dist, s_price, 1, station_num + 1 - i);
 			G[i].cur_station->label = i;
@@ -236,7 +207,7 @@ int main() {
 			// Add the stuff to the rest of the G
 			for(j=0; j<i; j++) {
 				// G+j: previous stations, G[i]: new station
-				createEdge(G+j, G[i].cur_station);
+				createEdge(G+j, G[i].cur_station, max_dist);
 			}
 		}
 
@@ -250,63 +221,72 @@ int main() {
 
 		// Add the destination to the rest of the adj_lists
 		for(i=0; i<=station_num; i++) {
-			createEdge(G+i, G[station_num+1].cur_station);
+			createEdge(G+i, G[station_num+1].cur_station, max_dist);
 		}
-
-		// Check if correct (delete after)
+		/*
 		printf("Case %d: %lf away, %lfL, %lfkm/L, %lfPhp, %d stations\n",
 				case_num, total_dist, fuel_cap, mileage,
 				initial_cost, station_num);
 		printGraph(G, station_num);
 		printPQ(&pq);
-
+		printf("Travel dist between %.4lf and %.4lf\n", max_dist, min_dist);
+		*/
 		// Actual Dijkstra's
 		while(flag != 0) {
 			// view the pq
-			printf("At first:\n");
-			printPQ(&pq);
+			//printf("At first:\n");
+			//printPQ(&pq);
 			// call extract_min
 			if(pq.size == 0) {
 				break;
 			}
-			int min_v = extract_min(&pq); // 1-indexed
-			int u = min_v - 1; // 0-indexed
+			min_v = extract_min(&pq); // 1-indexed
+			u = min_v - 1; // 0-indexed
 			if(pq.dist[u] > max_dist) {
 				flag = 0; // truck cannot reach the nearest place
 				break;
 			}
-			printf("Extracted node %d\n", u);
-			printf("After extract:\n");
-			printPQ(&pq);
+			//printf("Extracted node %d\n", u);
+			//printf("After extract:\n");
+			//printPQ(&pq);
 			Edge * a = G[u].adj_list; // get the adj_list of the vertex chosen
 			for(i=0; i<G[u].adj_list_size; i++) {
-				int v = a[i].adj_station->label; // 0-indexed
-				double newval = pq.key[u] + 2 +
+				if(a[i].dist_from_cur < min_dist && i < G[u].adj_list_size - 1) {
+					// Distance is less than accepted, and there are still
+					// some possible routes
+					//printf("Discounting route from %d to %d\n",
+							//a[i].cur_station->label,
+							//a[i].adj_station->label);
+					continue;
+				}
+				v = a[i].adj_station->label; // 0-indexed
+				newval = pq.key[u] + 2 +
 					(a[i].dist_from_cur * a[i].adj_station->price / mileage);
-				double newdist = a[i].dist_from_cur;
-				printf("Cost between %d and %d is %.4lf or %.4lf\n", u, v,
-						pq.key[v], newval);
-				printf("Dist between %d and %d is %.4lf or %.4lf\n", u, v,
-						pq.dist[v], newdist);
+				newdist = a[i].dist_from_cur;
+				//printf("Cost between %d and %d is %.4lf or %.4lf\n", u, v,
+						//pq.key[v], newval);
+				//printf("Dist between %d and %d is %.4lf or %.4lf\n", u, v,
+						//pq.dist[v], newdist);
 				if(pq.key[v] > newval && a[i].dist_from_cur < max_dist) {
 					// if new val has a lowest cost and is reachable
 					decrease_key(&pq, v+1, newval, newdist);
-					printf("After decrease:\n");
-					printPQ(&pq);
+					//printf("After decrease:\n");
+					//printPQ(&pq);
 				}
 			}
 			//break; // for now
 		}
 
 		// Dijkstra's is done; check things
-		printPQ(&pq);
-		printf("Key of dest: %.4lf\n", pq.key[pq.max_size-1]);
-		int cost = roundTo((pq.key[pq.max_size-1] + initial_cost) - 2);
-		if(flag == 1) {
-			printf("Case %d: %.6lf\n", case_num, pq.key[pq.max_size-1] + initial_cost - 2);
-			fprintf(fout, "Case %d: %d\n", case_num, cost);
+		//printPQ(&pq);
+		//printf("Key of dest: %.4lf\n", pq.key[pq.max_size-1]);
+		cost = roundTo((pq.key[pq.max_size-1] + initial_cost) - 2);
+		//printf("Case %d: %.6lf\n", case_num, pq.key[pq.max_size-1] + initial_cost - 2);
+		//printf("dist %.6lf\n", pq.dist[pq.max_size-1]);
+		if(flag == 1 || pq.dist[pq.max_size-1] < max_dist) {
+			fprintf(fout, "Case %d: %d", case_num, cost);
 		} else {
-			fprintf(fout, "Case %d: Gasoline stations not enough\n", case_num);
+			fprintf(fout, "Case %d: Gasoline stations not enough", case_num);
 		}
 
 		// Free G
@@ -315,11 +295,11 @@ int main() {
 			free(G[i].adj_list);
 		}
 		free(G);
+		free(pq.heap);
+		free(pq.key);
+		free(pq.dist);
+		free(pq.index);
 	}
-
-	// check correctness of macro
-	double x = INF;
-	printf("inf: %lf\n", x);
 
 	// Ending
 	fclose(fin);
